@@ -1,0 +1,6 @@
+{
+  "name": "StatMetric - Statistical Calculators & Research Toolkit",
+  "description": "Free calculators for Statistics, Research, Mathematics & Education. Compute p-values, t-tests, confidence intervals, normal distributions, standard deviations, and GPA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
