@@ -5,6 +5,7 @@ import { ReportBox } from '../components/ReportBox';
 import { StepsExplanation } from '../components/StepsExplanation';
 import { NextStepCard, NextStepOption } from '../components/NextStepCard';
 import { LearnVerifyBox } from '../components/LearnVerifyBox';
+import { ToolIcon } from '../components/ToolIcon';
 import {
   DistributionType,
   TailType,
@@ -110,17 +111,17 @@ export function PValuePage() {
   const nextSteps: NextStepOption[] = [
     {
       prompt: 'Need to compare two group means?',
-      toolName: 'Student’s T-Test',
-      path: '/calculators',
+      toolName: 'Two-Sample T-Test',
+      path: '/calculators/t-test',
       description: 'Compute t-statistic from raw experimental groups or sample summary statistics.',
-      isAvailable: false,
+      isAvailable: true,
     },
     {
       prompt: 'Need an interval estimate for your mean?',
       toolName: 'Confidence Interval',
-      path: '/calculators',
+      path: '/calculators/confidence-interval',
       description: 'Estimate the plausible range for the true population parameter at 95% confidence.',
-      isAvailable: false,
+      isAvailable: true,
     },
     {
       prompt: 'Need to examine normal probabilities?',
@@ -171,13 +172,17 @@ export function PValuePage() {
       </nav>
 
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-2">
-          P-Value Calculator
-        </h1>
-        <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-          Compute accurate p-values across standard normal (Z), Student&apos;s t, Chi-Square (χ²), and Snedecor&apos;s F distributions. Includes shaded rejection regions and report-ready interpretations.
-        </p>
+      <div className="mb-8 flex items-start gap-4">
+        <ToolIcon toolId="p-value" size="lg" />
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-1">
+            P-Value Calculator
+          </h1>
+          <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
+            Compute accurate p-values across standard normal (Z), Student&apos;s t, Chi-Square (χ²), and Snedecor&apos;s F distributions. Includes shaded rejection regions and report-ready interpretations.
+          </p>
+        </div>
+      </div>
 
         {/* Quick Example Presets */}
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs no-print">
@@ -207,7 +212,6 @@ export function PValuePage() {
             ANOVA F-test (F=3.45)
           </button>
         </div>
-      </div>
 
       {/* Calculator Container */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden mb-8">

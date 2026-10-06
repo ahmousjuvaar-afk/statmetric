@@ -67,21 +67,41 @@ export function Footer() {
 
           {/* Education & Mathematics */}
           <div>
-            <div className="font-semibold text-slate-200 text-sm mb-3">Education & Student Tools</div>
+            <div className="font-semibold text-slate-200 text-sm mb-3">Math & Converters</div>
             <ul className="space-y-2">
+              <li>
+                <Link to="/calculators/scientific-calculator" className="hover:text-slate-100 transition-colors">
+                  Scientific Calculator (Trig, Logs)
+                </Link>
+              </li>
+              <li>
+                <Link to="/calculators/fraction-calculator" className="hover:text-slate-100 transition-colors">
+                  Fraction Calculator (Mixed & LCD)
+                </Link>
+              </li>
+              <li>
+                <Link to="/calculators/percentage-calculator" className="hover:text-slate-100 transition-colors">
+                  Percentage Calculator (5 Modes)
+                </Link>
+              </li>
+              <li>
+                <Link to="/calculators/unit-converter" className="hover:text-slate-100 transition-colors">
+                  Unit Converter Suite (8 Domains)
+                </Link>
+              </li>
+              <li>
+                <Link to="/calculators/date-calculator" className="hover:text-slate-100 transition-colors">
+                  Date, Age & Business Days
+                </Link>
+              </li>
               <li>
                 <Link to="/calculators/gpa" className="hover:text-slate-100 transition-colors">
                   GPA & CGPA Calculator (4.0 & 5.0)
                 </Link>
               </li>
               <li>
-                <Link to="/calculators/grade-calculator" className="hover:text-slate-100 transition-colors">
-                  Final Grade Calculator (Needed Score)
-                </Link>
-              </li>
-              <li>
                 <Link to="/calculators" className="text-sky-400 hover:text-sky-300 transition-colors inline-flex items-center gap-1 font-medium pt-2">
-                  Browse All 5 Categories →
+                  Browse All Categories →
                 </Link>
               </li>
             </ul>

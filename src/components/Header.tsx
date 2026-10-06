@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter, Link } from '../lib/router';
 import { Search, Menu, X, BarChart3 } from 'lucide-react';
 import { SearchModal } from './SearchModal';
+import { ToolIcon } from './ToolIcon';
 
 export function Header() {
   const { currentPath } = useRouter();
@@ -10,9 +11,11 @@ export function Header() {
 
   const navLinks = [
     { label: 'Calculators', path: '/calculators' },
+    { label: 'Mathematics', path: '/calculators?cat=Mathematics' },
     { label: 'Statistics', path: '/calculators?cat=Statistics' },
     { label: 'Research', path: '/calculators?cat=Research' },
     { label: 'Education', path: '/calculators?cat=Education' },
+    { label: 'Converters', path: '/calculators?cat=Converters' },
     { label: 'Guides', path: '/guides' },
     { label: 'About', path: '/about' },
   ];

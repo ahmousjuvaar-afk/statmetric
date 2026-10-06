@@ -1,25 +1,19 @@
 import { Link } from '../lib/router';
 import { SeoHead } from '../components/SeoHead';
-import {
-  ArrowRight,
-  Calculator,
-  Compass,
-  CheckCircle2,
-  Lock,
-  Layers,
-  Sparkles,
-  BarChart2,
-  TrendingUp,
-  FileCheck,
-  Search,
-  GraduationCap,
-  Scale,
-  Percent,
-} from 'lucide-react';
+import { ToolIcon, CategoryIcon, ToolId, CategoryName } from '../components/ToolIcon';
+import { ArrowRight, Search, CheckCircle2 } from 'lucide-react';
 
 export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
-  const featuredTools = [
+  const featuredTools: {
+    id: ToolId;
+    title: string;
+    description: string;
+    path: string;
+    category: string;
+    meta: string;
+  }[] = [
     {
+      id: 'p-value',
       title: 'P-Value Calculator',
       description: 'Compute exact p-values for Z, Student’s t, Chi-Square, and F distributions with shaded tail rejection areas.',
       path: '/calculators/p-value',
@@ -27,6 +21,7 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
       meta: '4 distributions · APA 7 reporting',
     },
     {
+      id: 't-test',
       title: 'Two-Sample T-Test',
       description: 'Evaluate differences between two independent groups using Student’s or Welch’s t-test with Cohen’s d effect size.',
       path: '/calculators/t-test',
@@ -34,6 +29,7 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
       meta: 'Welch unequal variances · Cohen’s d',
     },
     {
+      id: 'confidence-interval',
       title: 'Confidence Interval',
       description: 'Construct 90%, 95%, and 99% interval estimates and margins of error for population means and proportions.',
       path: '/calculators/confidence-interval',
@@ -41,20 +37,15 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
       meta: 'Means (t & Z) · Proportions · Error bars',
     },
     {
-      title: 'GPA & CGPA Calculator',
-      description: 'Calculate credit-weighted semester GPA and project cumulative CGPA across US 4.0, 5.0, and percentage scales.',
-      path: '/calculators/gpa',
-      category: 'Education',
-      meta: '4.0 & 5.0 scales · Cumulative projection',
+      id: 'anova',
+      title: 'One-Way ANOVA',
+      description: 'Omnibus test for differences in treatment group means with SS source partition and eta-squared effect size.',
+      path: '/calculators/anova',
+      category: 'Research',
+      meta: 'F-ratio · Eta-squared · Source table',
     },
     {
-      title: 'Final Grade Calculator',
-      description: 'Determine the exact percentage score required on your final exam to pass or achieve your target course grade.',
-      path: '/calculators/grade-calculator',
-      category: 'Education',
-      meta: 'Target score solver · Weighted grade mode',
-    },
-    {
+      id: 'normal-distribution',
       title: 'Normal Distribution (Bell Curve)',
       description: 'Calculate cumulative probabilities, tail intervals, z-scores, and reverse percentiles under any Gaussian curve.',
       path: '/calculators/normal-distribution',
@@ -62,6 +53,15 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
       meta: 'Interactive curve · Z-scores · Percentiles',
     },
     {
+      id: 'binomial-distribution',
+      title: 'Binomial & Poisson Probability',
+      description: 'Compute exact and cumulative probabilities for Bernoulli trials, Poisson arrival rates, and Bayes’ theorem.',
+      path: '/calculators/binomial-distribution',
+      category: 'Probability',
+      meta: 'P(X=k) · Cumulative · Bayes posterior',
+    },
+    {
+      id: 'standard-deviation',
       title: 'Standard Deviation Calculator',
       description: 'Calculate sample (n - 1 with Bessel correction) and population (N) standard deviation and variance from raw data.',
       path: '/calculators/standard-deviation',
@@ -69,101 +69,166 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
       meta: 'Bessel correction · Observation-level table',
     },
     {
-      title: 'Descriptive Statistics Suite',
-      description: 'Comprehensive exploratory summary metrics: Mean, Median, Mode, Variance, SD, Range, Quartiles, and 5-number summary.',
-      path: '/calculators/descriptive-statistics',
+      id: 'correlation-regression',
+      title: 'Correlation & Regression',
+      description: 'Measure linear association with Pearson r, R² variance explained, and fit ordinary least squares regression line.',
+      path: '/calculators/correlation-regression',
       category: 'Statistics',
-      meta: 'Mean, Median, Mode, IQR · Box plot',
+      meta: 'Pearson r · OLS slope · Scatter plot',
+    },
+    {
+      id: 'scientific-calculator',
+      title: 'Scientific Calculator',
+      description: 'High-precision algebraic evaluator with powers, roots, trigonometry, logs, factorial, and degree/radian modes.',
+      path: '/calculators/scientific-calculator',
+      category: 'Mathematics',
+      meta: 'Degree/Rad · Trig · Logs · History',
+    },
+    {
+      id: 'fraction-calculator',
+      title: 'Fraction Calculator',
+      description: 'Add, subtract, multiply, and divide fractions with greatest common divisor simplification and mixed numbers.',
+      path: '/calculators/fraction-calculator',
+      category: 'Mathematics',
+      meta: 'Step-by-step LCD · Mixed fractions',
+    },
+    {
+      id: 'unit-converter',
+      title: 'Unit Converter Suite',
+      description: 'Convert between metric and imperial measurements across 8 domains: Length, Mass, Temp, Area, Volume, Speed, Time, Data.',
+      path: '/calculators/unit-converter',
+      category: 'Converters',
+      meta: '8 physical domains · Exact SI factors',
+    },
+    {
+      id: 'gpa',
+      title: 'GPA & CGPA Calculator',
+      description: 'Calculate credit-weighted semester GPA and project cumulative CGPA across US 4.0, 5.0, and percentage scales.',
+      path: '/calculators/gpa',
+      category: 'Education',
+      meta: '4.0 & 5.0 scales · Cumulative projection',
     },
   ];
 
-  const categoryCards = [
+  const categoryCards: {
+    name: CategoryName;
+    desc: string;
+    tools: string;
+    path: string;
+  }[] = [
     {
       name: 'Statistics',
-      desc: 'Descriptive and summary tools for data dispersion, central tendency, and variance.',
-      tools: 'Standard Deviation, Z-Score, Descriptive Stats',
+      desc: 'Descriptive metrics, dispersion, standardized z-scores, and correlation regression analysis.',
+      tools: 'Standard Deviation, Z-Score, Descriptive Stats, Correlation',
       path: '/calculators?cat=Statistics',
     },
     {
       name: 'Research',
-      desc: 'Peer-reviewed inferential testing, p-values, confidence intervals, and effect sizes.',
-      tools: 'P-Value, Two-Sample T-Test, Confidence Interval',
+      desc: 'Peer-reviewed inferential tests, p-values, t-tests, ANOVA, Chi-Square, sample size, and test selector.',
+      tools: 'P-Value, T-Test, Confidence Interval, ANOVA, Chi-Square',
       path: '/calculators?cat=Research',
     },
     {
       name: 'Probability',
-      desc: 'Gaussian normal distribution, tail intervals, and probability modeling.',
-      tools: 'Normal Distribution (Bell Curve), Tail Probabilities',
+      desc: 'Continuous Gaussian bell curves, Binomial Bernoulli trials, Poisson rates, and Bayes’ theorem.',
+      tools: 'Normal Distribution, Binomial, Poisson, Bayes’ Theorem',
       path: '/calculators?cat=Probability',
     },
     {
-      name: 'Education',
-      desc: 'Practical quantitative academic tools designed specifically for students and teachers.',
-      tools: 'GPA & CGPA Calculator, Final Grade Calculator',
-      path: '/calculators?cat=Education',
+      name: 'Mathematics',
+      desc: 'Foundational quantitative tools: Scientific, Fractions, Percentages, Ratios, and Graphing curves.',
+      tools: 'Scientific Calc, Fractions, Percentages, Ratios, Graphing',
+      path: '/calculators?cat=Mathematics',
     },
     {
-      name: 'Mathematics',
-      desc: 'Foundational quantitative calculators supporting the statistics and research toolkit.',
-      tools: 'Ratios, Percentages, Ordinary Least Squares',
-      path: '/calculators?cat=Mathematics',
+      name: 'Converters',
+      desc: 'Unified conversion across length, mass, temperature, area, volume, velocity, time, and data.',
+      tools: 'Metric & Imperial, SI Units, Temperature, Data Storage',
+      path: '/calculators?cat=Converters',
+    },
+    {
+      name: 'Date & Time',
+      desc: 'Calendar mathematics: exact chronological ages, business days (Mon-Fri), and clock durations.',
+      tools: 'Age Calculator, Business Days, Duration Across Midnight',
+      path: '/calculators?cat=Date+%26+Time',
+    },
+    {
+      name: 'Education',
+      desc: 'Practical quantitative academic tools designed specifically for college students and instructors.',
+      tools: 'Semester GPA, Cumulative CGPA, Final Exam Target Grade',
+      path: '/calculators?cat=Education',
     },
   ];
 
-  const taskList = [
+  const taskList: {
+    query: string;
+    target: string;
+    path: string;
+    category: string;
+    toolId: ToolId;
+  }[] = [
     {
       query: 'I need to calculate my GPA.',
       target: 'GPA & CGPA Calculator',
       path: '/calculators/gpa',
       category: 'Education',
+      toolId: 'gpa',
     },
     {
       query: 'I need to know what grade I need on my final exam.',
       target: 'Final Grade Calculator',
       path: '/calculators/grade-calculator',
       category: 'Education',
+      toolId: 'grade-calculator',
     },
     {
-      query: 'I need to compare two groups to see if the difference is significant.',
+      query: 'I need to compare two groups to see if difference is significant.',
       target: 'Two-Sample T-Test Calculator',
       path: '/calculators/t-test',
       category: 'Research',
+      toolId: 't-test',
     },
     {
-      query: 'I need to find an exact p-value from a test statistic.',
+      query: 'I need to compare 3 or more treatment groups.',
+      target: 'One-Way ANOVA Calculator',
+      path: '/calculators/anova',
+      category: 'Research',
+      toolId: 'anova',
+    },
+    {
+      query: 'I need an exact p-value from a test statistic.',
       target: 'P-Value Calculator',
       path: '/calculators/p-value',
       category: 'Research',
+      toolId: 'p-value',
     },
     {
-      query: 'I need an interval estimate for a population mean or proportion.',
-      target: 'Confidence Interval Calculator',
-      path: '/calculators/confidence-interval',
-      category: 'Research',
+      query: 'I need to convert units between metric and imperial.',
+      target: 'Unit Converter Suite',
+      path: '/calculators/unit-converter',
+      category: 'Converters',
+      toolId: 'unit-converter',
     },
     {
       query: 'I need to calculate standard deviation and variance from raw data.',
       target: 'Standard Deviation Calculator',
       path: '/calculators/standard-deviation',
       category: 'Statistics',
+      toolId: 'standard-deviation',
     },
     {
-      query: 'I need to calculate probability or percentile under a normal bell curve.',
-      target: 'Normal Distribution Calculator',
-      path: '/calculators/normal-distribution',
-      category: 'Probability',
+      query: 'I need to determine sample size for my study or survey.',
+      target: 'Sample Size & Power Calculator',
+      path: '/calculators/sample-size',
+      category: 'Research',
+      toolId: 'sample-size',
     },
     {
-      query: 'I want to know how far a value is from the mean in standard units.',
-      target: 'Z-Score Calculator',
-      path: '/calculators/z-score',
-      category: 'Statistics',
-    },
-    {
-      query: 'I need a full exploratory summary (mean, median, mode, IQR, box plot).',
-      target: 'Descriptive Statistics Suite',
-      path: '/calculators/descriptive-statistics',
-      category: 'Statistics',
+      query: 'I am not sure which statistical test to run.',
+      target: 'Statistical Test Selector',
+      path: '/calculators/test-selector',
+      category: 'Research',
+      toolId: 'test-selector',
     },
   ];
 
@@ -174,23 +239,23 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
     },
     {
       title: 'Peer-Reviewed Accuracy',
-      desc: 'All algorithms utilize peer-reviewed numerical implementations (Lanczos Gamma, Acklam inverse normal, Lentz continued fractions) tested against textbook datasets.',
+      desc: 'All algorithms utilize peer-reviewed numerical implementations (Lanczos Gamma, Acklam inverse normal, Lentz continued fractions) tested against textbook benchmarks.',
     },
     {
       title: '100% Client-Side Privacy',
       desc: 'All computations execute entirely inside your web browser. Your grades, student numbers, and experimental records are never sent over the network.',
     },
     {
-      title: 'Built for Students, Teachers & Researchers',
-      desc: 'Includes Learn Mode, Check Your Work verification checkpoints, and teacher-friendly classroom examples formatted for screen sharing.',
+      title: 'Consistent Visual Icon Identity',
+      desc: 'Every calculator features a unified, accessible SVG icon helping students, teachers, and researchers immediately identify and scan tools.',
     },
   ];
 
   return (
     <div>
       <SeoHead
-        title="StatMetric — Free Calculators for Statistics, Research, Mathematics & Education"
-        description="Calculate accurately, understand the result, and learn how it works. Free, mathematically verified calculators for p-values, t-tests, confidence intervals, normal distributions, standard deviations, and GPA."
+        title="StatMetric — Free Calculators for Statistics, Research, Math & Education"
+        description="Calculate accurately, understand the result, and learn how it works. Free, mathematically verified calculators for p-values, t-tests, ANOVA, confidence intervals, normal distributions, standard deviations, and GPA."
         path="/"
         schemaType="WebSite"
       />
@@ -216,7 +281,7 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
             >
               <div className="flex items-center gap-2.5">
                 <Search className="w-4 h-4 text-slate-400" />
-                <span className="text-slate-600">What do you need to calculate? (e.g. &lsquo;gpa&rsquo;, &lsquo;compare two groups&rsquo;)</span>
+                <span className="text-slate-600">What do you need to calculate? (e.g. &lsquo;gpa&rsquo;, &lsquo;anova&rsquo;, &lsquo;fractions&rsquo;)</span>
               </div>
               <kbd className="hidden sm:inline-block px-2 py-0.5 text-xs font-mono bg-white border border-slate-300 rounded text-slate-600">
                 ⌘K
@@ -238,14 +303,14 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
         </div>
       </section>
 
-      {/* Browse by 5 Core Categories */}
+      {/* Browse by Major Categories with CategoryIcon */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         <div className="mb-8">
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
             Browse by Quantitative Category
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Organized around statistics, empirical research, probability, and education.
+            Organized across statistics, empirical research, probability, mathematics, converters, and education.
           </p>
         </div>
 
@@ -257,15 +322,20 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
               className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between group"
             >
               <div>
-                <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-700 transition-colors mb-1.5 flex items-center justify-between">
-                  <span>{cat.name}</span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <CategoryIcon category={cat.name} size="md" />
+                    <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                      {cat.name}
+                    </h3>
+                  </div>
                   <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors" />
-                </h3>
+                </div>
                 <p className="text-xs text-slate-600 leading-relaxed mb-3">
                   {cat.desc}
                 </p>
               </div>
-              <div className="pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-500">
+              <div className="pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-500 truncate">
                 {cat.tools}
               </div>
             </Link>
@@ -273,7 +343,7 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
         </div>
       </section>
 
-      {/* Featured Primary Tools */}
+      {/* Featured Primary Tools with ToolIcon */}
       <section className="bg-slate-100/70 border-y border-slate-200 py-12 sm:py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between mb-8">
@@ -282,12 +352,12 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
                 Featured Tools
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Accurate, interactive calculators with visual models and report-ready outputs.
+                Accurate, interactive calculators with visual models, step-by-step arithmetic, and report-ready outputs.
               </p>
             </div>
             <Link
               to="/calculators"
-              className="text-xs font-semibold text-sky-700 hover:text-sky-900 transition-colors inline-flex items-center gap-1"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors inline-flex items-center gap-1"
             >
               <span>View all directory tools</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -301,8 +371,11 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
                 className="bg-white border border-slate-200 rounded-xl p-4.5 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                    {calc.category}
+                  <div className="flex items-center justify-between mb-2">
+                    <ToolIcon toolId={calc.id} size="sm" />
+                    <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">
+                      {calc.category}
+                    </span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 mb-1.5">
                     {calc.title}
@@ -313,7 +386,7 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-slate-600 truncate max-w-[120px]">
                     {calc.meta}
                   </span>
                   <Link
@@ -357,8 +430,11 @@ export function HomePage({ onOpenSearch }: { onOpenSearch: () => void }) {
                 </p>
               </div>
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-900">{item.target}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                <div className="flex items-center gap-2 truncate">
+                  <ToolIcon toolId={item.toolId} size="xs" />
+                  <span className="font-semibold text-slate-900 truncate">{item.target}</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
               </div>
             </Link>
           ))}
