@@ -14,6 +14,19 @@ import { TTestPage } from './pages/TTestPage';
 import { ConfidenceIntervalPage } from './pages/ConfidenceIntervalPage';
 import { ZScorePage } from './pages/ZScorePage';
 import { DescriptiveStatsPage } from './pages/DescriptiveStatsPage';
+import { ScientificCalcPage } from './pages/ScientificCalcPage';
+import { FractionCalcPage } from './pages/FractionCalcPage';
+import { PercentageCalcPage } from './pages/PercentageCalcPage';
+import { RatioCalcPage } from './pages/RatioCalcPage';
+import { GraphingCalcPage } from './pages/GraphingCalcPage';
+import { UnitConverterPage } from './pages/UnitConverterPage';
+import { DateCalcPage } from './pages/DateCalcPage';
+import { BinomialDistPage } from './pages/BinomialDistPage';
+import { CorrelationPage } from './pages/CorrelationPage';
+import { AnovaPage } from './pages/AnovaPage';
+import { ChiSquarePage } from './pages/ChiSquarePage';
+import { SampleSizePage } from './pages/SampleSizePage';
+import { TestSelectorPage } from './pages/TestSelectorPage';
 import { GuidesPage } from './pages/GuidesPage';
 import { AboutPage } from './pages/AboutPage';
 import { LegalPage } from './pages/LegalPage';
@@ -52,6 +65,32 @@ function AppContent() {
         return <ZScorePage />;
       case '/calculators/descriptive-statistics':
         return <DescriptiveStatsPage />;
+      case '/calculators/scientific-calculator':
+        return <ScientificCalcPage />;
+      case '/calculators/fraction-calculator':
+        return <FractionCalcPage />;
+      case '/calculators/percentage-calculator':
+        return <PercentageCalcPage />;
+      case '/calculators/ratio-calculator':
+        return <RatioCalcPage />;
+      case '/calculators/graphing-calculator':
+        return <GraphingCalcPage />;
+      case '/calculators/unit-converter':
+        return <UnitConverterPage />;
+      case '/calculators/date-calculator':
+        return <DateCalcPage />;
+      case '/calculators/binomial-distribution':
+        return <BinomialDistPage />;
+      case '/calculators/correlation-regression':
+        return <CorrelationPage />;
+      case '/calculators/anova':
+        return <AnovaPage />;
+      case '/calculators/chi-square':
+        return <ChiSquarePage />;
+      case '/calculators/sample-size':
+        return <SampleSizePage />;
+      case '/calculators/test-selector':
+        return <TestSelectorPage />;
       case '/about':
         return <AboutPage />;
       case '/privacy':

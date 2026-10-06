@@ -19,6 +19,18 @@ import { calculateTTest } from '../ttest';
 import { calculateConfidenceInterval } from '../confidenceInterval';
 import { calculateZScore } from '../zscore';
 import { calculateDescriptiveStats } from '../descriptive';
+import { MathExpressionEvaluator } from '../../math/calculatorEngine';
+import { calculateFractions } from '../../math/fractions';
+import { calculatePercentage } from '../../math/percentages';
+import { simplifyRatio, solveProportion } from '../../math/ratios';
+import { convertUnits } from '../../converters/units';
+import { calculateAge, calculateDateDifference, calculateTimeDuration } from '../../datetime/dateEngine';
+import { calculateBinomial, calculatePoisson, calculateBayes } from '../binomial';
+import { calculateCorrelationRegression } from '../correlation';
+import { calculateOneWayAnova } from '../anova';
+import { calculateChiSquareIndependence } from '../chisquare';
+import { calculateSampleSizeTwoMeans, calculateSurveySampleSize } from '../samplesize';
+import { TOOL_ICON_MAP } from '../../../components/ToolIcon';
 
 interface TestResult {
   name: string;
@@ -259,6 +271,146 @@ export function runStatisticalTests(): { total: number; passed: number; results:
   assertEqual('Descriptive Stats: Min -> 10', descStats.min, 10);
   assertEqual('Descriptive Stats: Max -> 25', descStats.max, 25);
   assertEqual('Descriptive Stats: Range -> 15', descStats.range, 15);
+
+  // --- 15. Mathematics: Safe Expression Evaluator ---
+  const evaluator = new MathExpressionEvaluator('rad');
+  assertClose('Math Evaluator: 25 * 4 + sqrt(81) -> 109', evaluator.evaluate('25 * 4 + sqrt(81)').value, 109, 1e-6);
+  assertClose('Math Evaluator: (12 + 8) / 5 -> 4', evaluator.evaluate('(12 + 8) / 5').value, 4, 1e-6);
+  assertClose('Math Evaluator: 2^5 + 3^2 -> 41', evaluator.evaluate('2^5 + 3^2').value, 41, 1e-6);
+  assertClose('Math Evaluator: sin(pi / 2) -> 1', evaluator.evaluate('sin(pi / 2)').value, 1, 1e-6);
+  assertClose('Math Evaluator: Factorial 5! -> 120', evaluator.evaluate('5!').value, 120, 1e-6);
+  assertClose('Math Evaluator: log10(1000) -> 3', evaluator.evaluate('log10(1000)').value, 3, 1e-6);
+
+  // Degree mode
+  const degEval = new MathExpressionEvaluator('deg');
+  assertClose('Math Evaluator Deg: sin(30) -> 0.5', degEval.evaluate('sin(30)').value, 0.5, 1e-6);
+
+  // --- 16. Mathematics: Fraction Calculator ---
+  const fAdd = calculateFractions({ numerator: 1, denominator: 3 }, { numerator: 1, denominator: 6 }, 'add');
+  assertEqual('Fractions: 1/3 + 1/6 -> 1/2', fAdd.simplifiedString, '1/2');
+  assertClose('Fractions: Decimal -> 0.5', fAdd.decimal, 0.5, 1e-6);
+
+  const fDiv = calculateFractions({ numerator: 3, denominator: 4 }, { numerator: 2, denominator: 5 }, 'divide');
+  assertEqual('Fractions: 3/4 ÷ 2/5 -> 15/8', fDiv.simplifiedString, '15/8');
+  assertEqual('Fractions: Mixed -> 1 7/8', fDiv.mixedString, '1 7/8');
+
+  // --- 17. Mathematics: Percentage Calculator ---
+  const pOf = calculatePercentage('percent_of', 25, 200);
+  assertClose('Percentage: 25% of 200 -> 50', pOf.primaryResult, 50, 1e-6);
+
+  const pIs = calculatePercentage('is_what_percent', 35, 140);
+  assertClose('Percentage: 35 is what % of 140 -> 25%', pIs.primaryResult, 25, 1e-6);
+
+  const pChg = calculatePercentage('percent_change', 50, 75);
+  assertClose('Percentage: 50 to 75 -> +50%', pChg.primaryResult, 50, 1e-6);
+
+  const pRev = calculatePercentage('reverse_percent', 120, 20, 'increase');
+  assertClose('Percentage Reverse: 120 after +20% -> 100', pRev.primaryResult, 100, 1e-6);
+
+  // --- 18. Mathematics: Ratio & Proportion ---
+  const rSimp = simplifyRatio(12, 18);
+  assertEqual('Ratio: 12:18 simplified -> 2 : 3', rSimp.ratioString, '2 : 3');
+
+  const propSolve = solveProportion(3, 4, 15, null);
+  assertClose('Proportion: 3/4 = 15/x -> x=20', propSolve.solvedValue, 20, 1e-6);
+
+  // --- 19. Converters Engine ---
+  const lenConv = convertUnits('length', 'm', 'ft', 10);
+  assertClose('Converter: 10 meters -> 32.8084 feet', lenConv.result, 32.80839895, 1e-4);
+
+  const tempConv = convertUnits('temperature', 'c', 'f', 100);
+  assertClose('Converter: 100 C -> 212 F', tempConv.result, 212, 1e-4);
+
+  const dataConv = convertUnits('data', 'mb', 'kb', 2);
+  assertClose('Converter: 2 MB -> 2048 KB', dataConv.result, 2048, 1e-4);
+
+  // --- 20. Date & Time Engine ---
+  const age = calculateAge('2000-01-01', '2025-01-01');
+  assertEqual('Age: 2000-01-01 to 2025-01-01 -> 25 years', age.years, 25);
+  assertEqual('Age: months -> 0', age.months, 0);
+
+  const dateDiff = calculateDateDifference('2024-01-01', '2024-01-08');
+  assertEqual('Date Difference: Total days -> 7', dateDiff.totalDays, 7);
+  assertEqual('Date Difference: Business days -> 5', dateDiff.businessDays, 5);
+
+  const duration = calculateTimeDuration('22:30', '02:00');
+  assertEqual('Time Duration: 22:30 to 02:00 -> 3 hours', duration.hours, 3);
+  assertEqual('Time Duration: minutes -> 30', duration.minutes, 30);
+  assertEqual('Time Duration: crossed midnight', duration.crossedMidnight, true);
+
+  // --- 21. Probability: Binomial, Poisson, Bayes ---
+  const binom = calculateBinomial(10, 0.5, 5);
+  assertClose('Binomial: n=10, p=0.5, k=5 -> 0.24609', binom.exactProbability, 0.24609375, 1e-4);
+  assertClose('Binomial: Mean -> 5', binom.mean, 5, 1e-6);
+  assertClose('Binomial: Variance -> 2.5', binom.variance, 2.5, 1e-6);
+
+  const pois = calculatePoisson(4, 4);
+  assertClose('Poisson: lambda=4, k=4 -> 0.19536', pois.exactProbability, 0.1953668, 1e-4);
+
+  const bayes = calculateBayes(0.01, 0.95, 0.05);
+  // P(D) = 0.01, P(+|D) = 0.95, P(+|~D) = 0.05 -> P(D|+) = 0.0095 / (0.0095 + 0.0495) = 0.1610
+  assertClose('Bayes Theorem: Posterior P(Disease | +) -> ~0.1610', bayes.posteriorAGivenB, 0.1610169, 1e-3);
+
+  // --- 22. Statistics & Research: Correlation & Regression ---
+  const sampleCorrPoints = [
+    { x: 1, y: 2 },
+    { x: 2, y: 3 },
+    { x: 3, y: 5 },
+    { x: 4, y: 4 },
+    { x: 5, y: 6 },
+  ];
+  const corr = calculateCorrelationRegression(sampleCorrPoints);
+  assertClose('Correlation r: -> 0.9', corr.r, 0.9, 1e-4);
+  assertClose('Correlation R²: -> 0.81', corr.rSquared, 0.81, 1e-4);
+  assertClose('Regression Slope: -> 0.9', corr.slope, 0.9, 1e-4);
+  assertClose('Regression Intercept: -> 1.3', corr.intercept, 1.3, 1e-4);
+
+  // --- 23. Statistics & Research: One-Way ANOVA ---
+  const anovaGroups = [
+    { name: 'Group A', values: [2, 3, 7, 2, 6] },
+    { name: 'Group B', values: [10, 8, 7, 5, 10] },
+    { name: 'Group C', values: [10, 13, 14, 13, 15] },
+  ];
+  const anova = calculateOneWayAnova(anovaGroups);
+  assertEqual('ANOVA: k -> 3', anova.k, 3);
+  assertEqual('ANOVA: dfBetween -> 2', anova.dfBetween, 2);
+  assertEqual('ANOVA: dfWithin -> 12', anova.dfWithin, 12);
+  assertClose('ANOVA: F-statistic -> 22.59', anova.fStatistic, 22.59259, 1e-2);
+  assertEqual('ANOVA: isSignificant at 0.05 -> true', anova.isSignificant, true);
+
+  // --- 24. Statistics & Research: Chi-Square Test of Independence ---
+  const contingencyTable = [
+    [20, 30],
+    [30, 15],
+  ];
+  const chiRes = calculateChiSquareIndependence(contingencyTable);
+  assertEqual('Chi-Square: df -> 1', chiRes.df, 1);
+  assertEqual('Chi-Square: totalN -> 95', chiRes.totalN, 95);
+  assertClose('Chi-Square: statistic -> 6.756', chiRes.chiSquare, 6.75556, 1e-2);
+  assertClose('Chi-Square: Cramérs V -> 0.267', chiRes.cramersV, 0.26667, 1e-2);
+
+  // --- 25. Research: Sample Size & Power ---
+  const sampleMeans = calculateSampleSizeTwoMeans(0.5, 0.05, 0.80);
+  assertEqual('Sample Size Means: Cohen d=0.5, power=0.8 -> 63 per group', sampleMeans.nPerGroup, 63);
+  assertEqual('Sample Size Means: Total N -> 126', sampleMeans.totalN, 126);
+
+  const surveySample = calculateSurveySampleSize(0.95, 0.05, 0.50);
+  assertEqual('Survey Sample Size: 95% CI, 5% margin -> 385', surveySample.requiredSample, 385);
+
+  // --- 26. Icon Registry Integrity Audit ---
+  const allToolIds = [
+    'p-value', 't-test', 'confidence-interval', 'sample-size', 'anova', 'chi-square', 'test-selector',
+    'normal-distribution', 'binomial-distribution',
+    'standard-deviation', 'z-score', 'descriptive-statistics', 'correlation-regression',
+    'scientific-calculator', 'standard-calculator', 'fraction-calculator', 'percentage-calculator',
+    'ratio-calculator', 'graphing-calculator',
+    'unit-converter', 'date-calculator',
+    'gpa', 'grade-calculator'
+  ];
+  for (const tid of allToolIds) {
+    const iconDef = TOOL_ICON_MAP[tid];
+    assertEqual(`Icon Registry: '${tid}' exists and has icon`, Boolean(iconDef && iconDef.icon), true);
+  }
 
   const total = results.length;
   const passed = results.filter((r) => r.passed).length;

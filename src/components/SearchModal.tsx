@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from '../lib/router';
-import { Search, Compass, BookOpen, Sparkles, X, ArrowRight } from 'lucide-react';
+import { ToolIcon, ToolId } from './ToolIcon';
+import { Search, X, ArrowRight } from 'lucide-react';
 
 interface SearchItem {
+  id: ToolId;
   title: string;
   category: string;
   path: string;
@@ -12,15 +14,18 @@ interface SearchItem {
 }
 
 const SEARCH_DATABASE: SearchItem[] = [
+  // --- RESEARCH ---
   {
+    id: 'p-value',
     title: 'P-Value Calculator',
     category: 'Research',
     path: '/calculators/p-value',
-    description: 'Calculate p-values for Z, Student t, Chi-Square, and F distributions with tail interpretations.',
+    description: 'Calculate exact p-values for Z, Student t, Chi-Square, and F distributions with tail interpretations.',
     keywords: ['p value', 'hypothesis', 't test', 'z score', 'chi square', 'f test', 'significance', 'alpha', 'null hypothesis', 'i need to find a p value'],
     isAvailable: true,
   },
   {
+    id: 't-test',
     title: 'Two-Sample T-Test Calculator',
     category: 'Research',
     path: '/calculators/t-test',
@@ -29,6 +34,7 @@ const SEARCH_DATABASE: SearchItem[] = [
     isAvailable: true,
   },
   {
+    id: 'confidence-interval',
     title: 'Confidence Interval Calculator',
     category: 'Research',
     path: '/calculators/confidence-interval',
@@ -37,6 +43,45 @@ const SEARCH_DATABASE: SearchItem[] = [
     isAvailable: true,
   },
   {
+    id: 'anova',
+    title: 'One-Way ANOVA Calculator',
+    category: 'Research',
+    path: '/calculators/anova',
+    description: 'Compare means across three or more treatment groups with omnibus F-test and eta-squared effect size.',
+    keywords: ['anova', 'analysis of variance', 'three groups', 'f ratio', 'f test', 'compare 3 groups'],
+    isAvailable: true,
+  },
+  {
+    id: 'chi-square',
+    title: 'Chi-Square Test Calculator',
+    category: 'Research',
+    path: '/calculators/chi-square',
+    description: 'Chi-Square test of independence for r × c contingency tables with expected frequencies and Cramér’s V.',
+    keywords: ['chi square', 'contingency table', 'independence', 'cramer v', 'frequencies', 'categorical test'],
+    isAvailable: true,
+  },
+  {
+    id: 'sample-size',
+    title: 'Sample Size & Power Calculator',
+    category: 'Research',
+    path: '/calculators/sample-size',
+    description: 'Determine required sample size for statistical power 0.80 and survey populations with margin of error.',
+    keywords: ['sample size', 'power analysis', 'how many subjects', 'margin of error', 'survey sample', 'cohen d'],
+    isAvailable: true,
+  },
+  {
+    id: 'test-selector',
+    title: 'Statistical Test Selector',
+    category: 'Research',
+    path: '/calculators/test-selector',
+    description: 'Interactive guided methodology wizard matching research variables and study designs to proper tests.',
+    keywords: ['which test to use', 'test selector', 'statistical test', 'decision tree', 'parametric vs non parametric'],
+    isAvailable: true,
+  },
+
+  // --- PROBABILITY ---
+  {
+    id: 'normal-distribution',
     title: 'Normal Distribution Calculator',
     category: 'Probability',
     path: '/calculators/normal-distribution',
@@ -45,14 +90,18 @@ const SEARCH_DATABASE: SearchItem[] = [
     isAvailable: true,
   },
   {
-    title: 'Z-Score Calculator',
-    category: 'Statistics',
-    path: '/calculators/z-score',
-    description: 'Convert raw scores to standard deviations from the mean (z = (x - μ) / σ) or find reverse raw scores.',
-    keywords: ['z score', 'z-score', 'standard score', 'distance from mean', 'standardize', 'i want to know how far a value is from the mean'],
+    id: 'binomial-distribution',
+    title: 'Binomial & Poisson Probability',
+    category: 'Probability',
+    path: '/calculators/binomial-distribution',
+    description: 'Compute exact discrete probabilities for Binomial trials, Poisson arrival rates, and Bayes’ theorem.',
+    keywords: ['binomial', 'poisson', 'bayes theorem', 'discrete probability', 'bernoulli', 'trials', 'prior probability'],
     isAvailable: true,
   },
+
+  // --- STATISTICS ---
   {
+    id: 'standard-deviation',
     title: 'Standard Deviation Calculator',
     category: 'Statistics',
     path: '/calculators/standard-deviation',
@@ -61,6 +110,16 @@ const SEARCH_DATABASE: SearchItem[] = [
     isAvailable: true,
   },
   {
+    id: 'z-score',
+    title: 'Z-Score Calculator',
+    category: 'Statistics',
+    path: '/calculators/z-score',
+    description: 'Convert raw scores to standard deviations from the mean (z = (x - μ) / σ) or find reverse raw scores.',
+    keywords: ['z score', 'z-score', 'standard score', 'distance from mean', 'standardize', 'i want to know how far a value is from the mean'],
+    isAvailable: true,
+  },
+  {
+    id: 'descriptive-statistics',
     title: 'Descriptive Statistics Suite',
     category: 'Statistics',
     path: '/calculators/descriptive-statistics',
@@ -69,6 +128,87 @@ const SEARCH_DATABASE: SearchItem[] = [
     isAvailable: true,
   },
   {
+    id: 'correlation-regression',
+    title: 'Pearson Correlation & Linear Regression',
+    category: 'Statistics',
+    path: '/calculators/correlation-regression',
+    description: 'Measure linear association with Pearson r, R² variance explained, and fit ordinary least squares regression line.',
+    keywords: ['correlation', 'regression', 'linear regression', 'pearson r', 'scatter plot', 'slope', 'intercept', 'ols'],
+    isAvailable: true,
+  },
+
+  // --- MATHEMATICS ---
+  {
+    id: 'scientific-calculator',
+    title: 'Scientific & Standard Calculator',
+    category: 'Mathematics',
+    path: '/calculators/scientific-calculator',
+    description: 'Safe, high-precision expression evaluator with powers, roots, trigonometry, logs, factorial, and degree/radian modes.',
+    keywords: ['calculator', 'scientific calculator', 'arithmetic', 'trigonometry', 'sin', 'cos', 'tan', 'square root', 'log', 'factorial'],
+    isAvailable: true,
+  },
+  {
+    id: 'fraction-calculator',
+    title: 'Fraction Calculator',
+    category: 'Mathematics',
+    path: '/calculators/fraction-calculator',
+    description: 'Add, subtract, multiply, and divide fractions with greatest common divisor (GCD) simplification and mixed numbers.',
+    keywords: ['fraction', 'fractions', 'divide fractions', 'simplify fraction', 'mixed numbers', 'improper fraction', 'lcd', 'gcd'],
+    isAvailable: true,
+  },
+  {
+    id: 'percentage-calculator',
+    title: 'Percentage Calculator',
+    category: 'Mathematics',
+    path: '/calculators/percentage-calculator',
+    description: 'Calculate percent of a number, percentage increase/decrease, percentage difference, and reverse original values.',
+    keywords: ['percentage', 'percent', 'percent change', 'percent increase', 'percent decrease', 'discount', 'markup', 'reverse percent'],
+    isAvailable: true,
+  },
+  {
+    id: 'ratio-calculator',
+    title: 'Ratio & Proportion Calculator',
+    category: 'Mathematics',
+    path: '/calculators/ratio-calculator',
+    description: 'Simplify ratios A:B:C to lowest terms and solve for missing terms in proportional fractions (A/B = C/D).',
+    keywords: ['ratio', 'proportion', 'simplify ratio', 'cross multiplication', 'equivalent ratio', 'solve proportion'],
+    isAvailable: true,
+  },
+  {
+    id: 'graphing-calculator',
+    title: 'Graphing Calculator',
+    category: 'Mathematics',
+    path: '/calculators/graphing-calculator',
+    description: 'Interactive SVG function grapher for y = f(x) with live coordinate inspection, zoom, pan, and preset curves.',
+    keywords: ['graph', 'graphing calculator', 'plot function', 'curve', 'parabola', 'sine wave', 'coordinates'],
+    isAvailable: true,
+  },
+
+  // --- CONVERTERS ---
+  {
+    id: 'unit-converter',
+    title: 'Unit Converter Suite',
+    category: 'Converters',
+    path: '/calculators/unit-converter',
+    description: 'Convert across 8 physical domains: Length, Mass, Temperature, Area, Volume, Speed, Time, and Digital Storage.',
+    keywords: ['converter', 'unit converter', 'metric to imperial', 'celsius to fahrenheit', 'kg to lbs', 'meters to feet', 'bytes to mb'],
+    isAvailable: true,
+  },
+
+  // --- DATE & TIME ---
+  {
+    id: 'date-calculator',
+    title: 'Date & Time Calculator',
+    category: 'Date & Time',
+    path: '/calculators/date-calculator',
+    description: 'Calculate exact calendar age, business days excluding weekends, calendar differences, and elapsed time durations.',
+    keywords: ['date calculator', 'age calculator', 'how old am i', 'business days', 'date difference', 'time duration', 'hours between times'],
+    isAvailable: true,
+  },
+
+  // --- EDUCATION ---
+  {
+    id: 'gpa',
     title: 'GPA & CGPA Calculator',
     category: 'Education',
     path: '/calculators/gpa',
@@ -77,62 +217,13 @@ const SEARCH_DATABASE: SearchItem[] = [
     isAvailable: true,
   },
   {
+    id: 'grade-calculator',
     title: 'Final Grade Calculator',
     category: 'Education',
     path: '/calculators/grade-calculator',
     description: 'Calculate what score you need on your final exam to achieve your desired target course grade.',
     keywords: ['grade calculator', 'final grade calculator', 'what grade do i need', 'final exam', 'target grade', 'weighted grade', 'exam score'],
     isAvailable: true,
-  },
-  // Research Guides
-  {
-    title: 'What Is a P-Value (And What It Isn’t)?',
-    category: 'Research Guide',
-    path: '/guides/what-is-a-p-value',
-    description: 'Clear, accurate guide explaining the true meaning of p-values and how to avoid common misconceptions.',
-    keywords: ['guide', 'what is p value', 'interpretation', 'common mistakes', 'null hypothesis'],
-    isAvailable: true,
-  },
-  {
-    title: 'Sample vs. Population Standard Deviation',
-    category: 'Research Guide',
-    path: '/guides/sample-vs-population',
-    description: 'Why we divide by n-1 instead of n: understanding Bessel’s correction and bias in variance estimation.',
-    keywords: ['guide', 'sample vs population', 'bessel correction', 'degrees of freedom', 'variance bias'],
-    isAvailable: true,
-  },
-  {
-    title: 'Understanding the Normal Distribution & Bell Curve',
-    category: 'Research Guide',
-    path: '/guides/normal-distribution-guide',
-    description: 'The 68-95-99.7 empirical rule, z-scores, and how Gaussian models underpin statistical inference.',
-    keywords: ['guide', 'bell curve', 'empirical rule', 'z-score formula', 'central limit theorem'],
-    isAvailable: true,
-  },
-  // Future roadmap search items
-  {
-    title: 'Sample Size & Power Calculator',
-    category: 'Research (Roadmap)',
-    path: '/calculators',
-    description: 'Determine required sample size for statistical power 0.80 at alpha 0.05 (In Development).',
-    keywords: ['sample size', 'power analysis', 'effect size', 'cohen d', 'i need to know how many people i need for my survey'],
-    isAvailable: false,
-  },
-  {
-    title: 'One-Way ANOVA Calculator',
-    category: 'Research (Roadmap)',
-    path: '/calculators',
-    description: 'Compare means across three or more treatment groups with F-ratio tests (In Development).',
-    keywords: ['anova', 'analysis of variance', 'three groups', 'f ratio'],
-    isAvailable: false,
-  },
-  {
-    title: 'Pearson Correlation & Regression',
-    category: 'Mathematics (Roadmap)',
-    path: '/calculators',
-    description: 'Bivariate linear relationship and ordinary least squares regression (In Development).',
-    keywords: ['correlation', 'regression', 'linear regression', 'pearson r', 'scatter plot'],
-    isAvailable: false,
   },
 ];
 
@@ -151,8 +242,7 @@ export function SearchModal({
       if (e.key === 'Escape') onClose();
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        if (isOpen) onClose();
-        else onClose(); // parent handles toggle
+        onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -169,23 +259,18 @@ export function SearchModal({
           item.description.toLowerCase().includes(normalizedQuery) ||
           item.keywords.some((k) => k.includes(normalizedQuery))
       )
-    : SEARCH_DATABASE.slice(0, 6);
+    : SEARCH_DATABASE.slice(0, 7);
 
   const handleSelect = (item: SearchItem) => {
-    if (item.isAvailable) {
-      navigate(item.path);
-      onClose();
-    } else {
-      navigate('/calculators');
-      onClose();
-    }
+    navigate(item.path);
+    onClose();
   };
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Search statistical tools and guides"
+      aria-label="Search quantitative tools and calculators"
       className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/60 backdrop-blur-xs"
       onClick={onClose}
     >
@@ -200,7 +285,7 @@ export function SearchModal({
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by tool, task (e.g. 'p-value', 'bell curve', 'compare means')..."
+            placeholder="Search by tool, task (e.g. 'p-value', 'bell curve', 'fractions', 'anova')..."
             className="w-full px-3 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent"
           />
           <button
@@ -215,40 +300,39 @@ export function SearchModal({
         <div className="max-h-96 overflow-y-auto p-2 divide-y divide-slate-100">
           {results.length === 0 ? (
             <div className="py-8 text-center text-sm text-slate-500">
-              No statistical tools found matching &ldquo;{query}&rdquo;.
+              No tools found matching &ldquo;{query}&rdquo;.
             </div>
           ) : (
             results.map((item) => (
               <button
-                key={item.title}
+                key={item.id}
                 onClick={() => handleSelect(item)}
-                className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors flex items-start justify-between gap-3 group"
+                className="w-full text-left p-2.5 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 group"
               >
-                <div>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-0.5">
-                    <span>{item.category}</span>
-                    {!item.isAvailable && (
-                      <>
-                        <span aria-hidden="true">·</span>
-                        <span className="text-amber-700 font-medium">Roadmap</span>
-                      </>
-                    )}
+                <div className="flex items-center gap-3">
+                  {/* ToolIcon for search result */}
+                  <ToolIcon toolId={item.id} size="sm" />
+
+                  <div>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 mb-0.5">
+                      <span>{item.category}</span>
+                    </div>
+                    <div className="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
+                      {item.title}
+                    </div>
+                    <p className="text-xs text-slate-600 line-clamp-1">
+                      {item.description}
+                    </p>
                   </div>
-                  <div className="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
-                    {item.title}
-                  </div>
-                  <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">
-                    {item.description}
-                  </p>
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 shrink-0 mt-1 transition-colors" />
+                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 shrink-0 transition-colors" />
               </button>
             ))
           )}
         </div>
 
         <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>Tip: Try searching statistical goals like &ldquo;variance&rdquo; or &ldquo;percentile&rdquo;</span>
+          <span>Tip: Try searching math & research goals like &ldquo;variance&rdquo;, &ldquo;anova&rdquo;, or &ldquo;converters&rdquo;</span>
           <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-[10px]">
             ESC to close
           </kbd>
