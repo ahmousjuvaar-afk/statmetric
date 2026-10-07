@@ -7,26 +7,30 @@ import { calculateFractions, FractionOperation } from '../lib/math/fractions';
 import { RotateCcw } from 'lucide-react';
 
 export function FractionCalcPage() {
-  const [num1, setNum1] = useState('3');
-  const [den1, setDen1] = useState('4');
-  const [num2, setNum2] = useState('2');
-  const [den2, setDen2] = useState('5');
+  const [num1, setNum1] = useState('');
+  const [den1, setDen1] = useState('');
+  const [num2, setNum2] = useState('');
+  const [den2, setDen2] = useState('');
   const [operation, setOperation] = useState<FractionOperation>('add');
 
+  const hasInputs =
+    num1.trim() !== '' && den1.trim() !== '' && num2.trim() !== '' && den2.trim() !== '';
+
   const result = useMemo(() => {
+    if (!hasInputs) return { data: null, error: null };
     const n1 = parseInt(num1, 10);
     const d1 = parseInt(den1, 10);
     const n2 = parseInt(num2, 10);
     const d2 = parseInt(den2, 10);
 
     if (isNaN(n1) || isNaN(d1) || isNaN(n2) || isNaN(d2)) {
-      return { error: 'Please enter valid integer numerators and denominators.' };
+      return { data: null, error: 'Please enter valid integer numerators and denominators.' };
     }
     if (d1 === 0 || d2 === 0) {
-      return { error: 'Denominator cannot be zero.' };
+      return { data: null, error: 'Denominator cannot be zero.' };
     }
     if (operation === 'divide' && n2 === 0) {
-      return { error: 'Cannot divide by a fraction with numerator 0.' };
+      return { data: null, error: 'Cannot divide by a fraction with numerator 0.' };
     }
 
     try {
@@ -37,9 +41,9 @@ export function FractionCalcPage() {
       );
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid fraction calculation.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid fraction calculation.' };
     }
-  }, [num1, den1, num2, den2, operation]);
+  }, [num1, den1, num2, den2, operation, hasInputs]);
 
   const opSymbols: Record<FractionOperation, string> = {
     add: '+',
@@ -150,7 +154,7 @@ export function FractionCalcPage() {
           <div className="text-2xl font-bold text-slate-400">=</div>
 
           {/* Result Card Box */}
-          <div className="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-xl min-w-[140px]">
+          <div className="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-xl min-w-[140px] min-h-[90px]">
             {result.error ? (
               <span className="text-xs text-rose-600 text-center font-medium">{result.error}</span>
             ) : result.data ? (
@@ -167,15 +171,20 @@ export function FractionCalcPage() {
                   ≈ {result.data.decimal.toFixed(4)}
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="text-center text-xs text-slate-400">
+                <span>Result</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Quick Presets */}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>Presets:</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 mt-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span>Worked Examples:</span>
             <button
+              type="button"
               onClick={() => { setNum1('1'); setDen1('2'); setNum2('1'); setDen2('4'); setOperation('add'); }}
               className="text-blue-600 hover:underline"
             >
@@ -183,6 +192,7 @@ export function FractionCalcPage() {
             </button>
             <span>·</span>
             <button
+              type="button"
               onClick={() => { setNum1('3'); setDen1('5'); setNum2('2'); setDen2('3'); setOperation('multiply'); }}
               className="text-blue-600 hover:underline"
             >
@@ -190,6 +200,7 @@ export function FractionCalcPage() {
             </button>
             <span>·</span>
             <button
+              type="button"
               onClick={() => { setNum1('7'); setDen1('8'); setNum2('1'); setDen2('2'); setOperation('subtract'); }}
               className="text-blue-600 hover:underline"
             >
@@ -197,10 +208,11 @@ export function FractionCalcPage() {
             </button>
           </div>
           <button
-            onClick={() => { setNum1('1'); setDen1('1'); setNum2('1'); setDen2('1'); setOperation('add'); }}
-            className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1"
+            type="button"
+            onClick={() => { setNum1(''); setDen1(''); setNum2(''); setDen2(''); setOperation('add'); }}
+            className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors"
           >
-            <RotateCcw className="w-3 h-3" /> Reset
+            <RotateCcw className="w-3 h-3" /> Clear
           </button>
         </div>
       </div>

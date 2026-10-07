@@ -9,32 +9,50 @@ export function RatioCalcPage() {
   const [tab, setTab] = useState<'simplify' | 'proportion'>('simplify');
 
   // Simplify inputs
-  const [termA, setTermA] = useState('24');
-  const [termB, setTermB] = useState('36');
+  const [termA, setTermA] = useState('');
+  const [termB, setTermB] = useState('');
   const [termC, setTermC] = useState('');
 
   // Proportion inputs: A/B = C/D
-  const [propA, setPropA] = useState('4');
-  const [propB, setPropB] = useState('5');
-  const [propC, setPropC] = useState('20');
-  const [propD, setPropD] = useState(''); // solve for D
+  const [propA, setPropA] = useState('');
+  const [propB, setPropB] = useState('');
+  const [propC, setPropC] = useState('');
+  const [propD, setPropD] = useState('');
+
+  const hasSimplifyInputs = termA.trim() !== '' && termB.trim() !== '';
+  const proportionFilledCount = [propA, propB, propC, propD].filter((s) => s.trim() !== '').length;
+
+  const loadSimplifyExample = () => {
+    setTermA('24');
+    setTermB('36');
+    setTermC('');
+  };
+
+  const loadProportionExample = () => {
+    setPropA('4');
+    setPropB('5');
+    setPropC('20');
+    setPropD('');
+  };
 
   const simplifyResult = useMemo(() => {
+    if (!hasSimplifyInputs) return { data: null, error: null };
     const a = parseFloat(termA);
     const b = parseFloat(termB);
     const c = termC.trim() ? parseFloat(termC) : undefined;
     if (isNaN(a) || isNaN(b) || (c !== undefined && isNaN(c))) {
-      return { error: 'Please enter valid positive numbers for ratio terms.' };
+      return { data: null, error: 'Please enter valid positive numbers for ratio terms.' };
     }
     try {
       const res = simplifyRatio(a, b, c);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid ratio.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid ratio.' };
     }
-  }, [termA, termB, termC]);
+  }, [termA, termB, termC, hasSimplifyInputs]);
 
   const proportionResult = useMemo(() => {
+    if (proportionFilledCount < 3) return { data: null, error: null };
     const a = propA.trim() ? parseFloat(propA) : null;
     const b = propB.trim() ? parseFloat(propB) : null;
     const c = propC.trim() ? parseFloat(propC) : null;
@@ -44,9 +62,9 @@ export function RatioCalcPage() {
       const res = solveProportion(a, b, c, d);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid proportion.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid proportion.' };
     }
-  }, [propA, propB, propC, propD]);
+  }, [propA, propB, propC, propD, proportionFilledCount]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -105,6 +123,7 @@ export function RatioCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Term A</label>
                 <input
                   type="number"
+                  placeholder="e.g. 24"
                   value={termA}
                   onChange={(e) => setTermA(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -114,6 +133,7 @@ export function RatioCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Term B</label>
                 <input
                   type="number"
+                  placeholder="e.g. 36"
                   value={termB}
                   onChange={(e) => setTermB(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -131,7 +151,7 @@ export function RatioCalcPage() {
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center min-h-[64px] flex flex-col justify-center">
                 <span className="text-[11px] font-semibold text-slate-600 block mb-0.5">Simplified</span>
                 {simplifyResult.error ? (
                   <span className="text-xs text-rose-600">{simplifyResult.error}</span>
@@ -139,7 +159,30 @@ export function RatioCalcPage() {
                   <div className="text-xl font-extrabold text-blue-600 font-mono">
                     {simplifyResult.data.ratioString}
                   </div>
-                ) : null}
+                ) : (
+                  <span className="text-xs text-slate-400">A : B</span>
+                )}
+              </div>
+            </div>
+
+            {/* Action toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 mt-4 text-xs">
+              <span className="text-slate-500">GCD reduction to lowest whole terms</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={loadSimplifyExample}
+                  className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                >
+                  Load Example (24 : 36)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTermA(''); setTermB(''); setTermC(''); }}
+                  className="text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  Clear
+                </button>
               </div>
             </div>
           </div>
@@ -210,7 +253,7 @@ export function RatioCalcPage() {
               </div>
 
               {/* Solution */}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl min-w-[150px] text-center ml-2">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl min-w-[150px] text-center ml-2 min-h-[76px] flex flex-col justify-center">
                 <span className="text-[11px] font-semibold text-slate-600 block mb-0.5">Solution</span>
                 {proportionResult.error ? (
                   <span className="text-xs text-rose-600">{proportionResult.error}</span>
@@ -220,7 +263,30 @@ export function RatioCalcPage() {
                       {proportionResult.data.missingTerm} = {Number(proportionResult.data.solvedValue.toFixed(4))}
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <span className="text-xs text-slate-400">Leave 1 blank</span>
+                )}
+              </div>
+            </div>
+
+            {/* Action toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 mt-4 text-xs">
+              <span className="text-slate-500">Cross-multiplication solving</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={loadProportionExample}
+                  className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                >
+                  Load Example (4/5 = 20/D)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPropA(''); setPropB(''); setPropC(''); setPropD(''); }}
+                  className="text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  Clear
+                </button>
               </div>
             </div>
           </div>

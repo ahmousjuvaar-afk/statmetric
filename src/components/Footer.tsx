@@ -1,5 +1,6 @@
 import { Link } from '../lib/router';
-import { BarChart3, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
+import { StatMetricLogo } from './StatMetricLogo';
 
 export function Footer() {
   return (
@@ -8,12 +9,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Brand & Purpose */}
           <div className="md:col-span-1 space-y-3">
-            <div className="flex items-center gap-2 text-slate-100 font-bold text-sm">
-              <div className="w-6 h-6 rounded bg-slate-800 flex items-center justify-center text-sky-400">
-                <BarChart3 className="w-4 h-4" />
-              </div>
-              <span>StatMetric</span>
-            </div>
+            <Link to="/" className="inline-block" aria-label="StatMetric Home">
+              <StatMetricLogo variant="full" size="sm" inverted />
+            </Link>
             <p className="text-slate-400 leading-relaxed">
               Free, accurate statistical calculation platform designed for students, researchers, academics, and data analysts.
             </p>

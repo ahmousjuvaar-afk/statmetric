@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useRouter, Link } from '../lib/router';
-import { Search, Menu, X, BarChart3 } from 'lucide-react';
+import { Search, Menu, X } from 'lucide-react';
 import { SearchModal } from './SearchModal';
 import { ToolIcon } from './ToolIcon';
+import { StatMetricLogo } from './StatMetricLogo';
 
 export function Header() {
   const { currentPath } = useRouter();
@@ -38,18 +39,8 @@ export function Header() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xs border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-md bg-slate-900 flex items-center justify-center text-sky-400 group-hover:bg-slate-800 transition-colors shadow-xs">
-              <BarChart3 className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-bold text-base tracking-tight text-slate-900 group-hover:text-slate-800 transition-colors">
-                StatMetric
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-xs text-slate-500 font-normal border-l border-slate-200 pl-2">
-                Research & Statistical Utility
-              </span>
-            </div>
+          <Link to="/" className="flex items-center gap-2.5 group" aria-label="StatMetric Home">
+            <StatMetricLogo variant="full" size="md" />
           </Link>
 
           {/* Desktop Nav */}

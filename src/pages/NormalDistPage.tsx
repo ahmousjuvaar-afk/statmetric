@@ -20,13 +20,20 @@ import {
 
 export function NormalDistPage() {
   const [mode, setMode] = useState<NormalDistMode>('less_than');
-  const [meanStr, setMeanStr] = useState<string>('100');
-  const [sdStr, setSdStr] = useState<string>('15');
-  const [xStr, setXStr] = useState<string>('115');
-  const [lowerBoundStr, setLowerBoundStr] = useState<string>('85');
-  const [upperBoundStr, setUpperBoundStr] = useState<string>('115');
-  const [percentileStr, setPercentileStr] = useState<string>('95');
+  const [meanStr, setMeanStr] = useState<string>('0');
+  const [sdStr, setSdStr] = useState<string>('1');
+  const [xStr, setXStr] = useState<string>('');
+  const [lowerBoundStr, setLowerBoundStr] = useState<string>('');
+  const [upperBoundStr, setUpperBoundStr] = useState<string>('');
+  const [percentileStr, setPercentileStr] = useState<string>('');
   const [copiedValue, setCopiedValue] = useState(false);
+
+  const hasInputs =
+    mode === 'less_than' || mode === 'greater_than' || mode === 'find_z'
+      ? xStr.trim() !== ''
+      : mode === 'between' || mode === 'outside'
+      ? lowerBoundStr.trim() !== '' && upperBoundStr.trim() !== ''
+      : percentileStr.trim() !== '';
 
   // Numerical parsing
   const mean = parseFloat(meanStr);
@@ -42,17 +49,19 @@ export function NormalDistPage() {
     inputError = 'Mean (μ) must be a valid number.';
   } else if (isNaN(sd) || sd <= 0) {
     inputError = 'Standard deviation (σ) must be strictly greater than 0.';
-  } else if ((mode === 'less_than' || mode === 'greater_than' || mode === 'find_z') && isNaN(x)) {
-    inputError = 'Enter a valid raw x value.';
-  } else if ((mode === 'between' || mode === 'outside') && (isNaN(lowerBound) || isNaN(upperBound))) {
-    inputError = 'Both lower (a) and upper (b) bounds must be valid numbers.';
-  } else if (mode === 'inverse_percentile' && (isNaN(percentile) || percentile <= 0 || percentile >= 100)) {
-    inputError = 'Percentile must be between 0% and 100% exclusive (e.g. 95 or 50).';
+  } else if (hasInputs) {
+    if ((mode === 'less_than' || mode === 'greater_than' || mode === 'find_z') && isNaN(x)) {
+      inputError = 'Enter a valid raw x value.';
+    } else if ((mode === 'between' || mode === 'outside') && (isNaN(lowerBound) || isNaN(upperBound))) {
+      inputError = 'Both lower (a) and upper (b) bounds must be valid numbers.';
+    } else if (mode === 'inverse_percentile' && (isNaN(percentile) || percentile <= 0 || percentile >= 100)) {
+      inputError = 'Percentile must be between 0% and 100% exclusive (e.g. 95 or 50).';
+    }
   }
 
   // Calculate result
   const result: NormalDistResult | null = useMemo(() => {
-    if (inputError) return null;
+    if (!hasInputs || inputError) return null;
     try {
       return calculateNormalDist({
         mode,
@@ -69,7 +78,7 @@ export function NormalDistPage() {
       }
       return null;
     }
-  }, [mode, mean, sd, x, lowerBound, upperBound, percentile, inputError]);
+  }, [hasInputs, mode, mean, sd, x, lowerBound, upperBound, percentile, inputError]);
 
   const loadPreset = (preset: 'iq' | 'height' | 'standard' | 'sat') => {
     if (preset === 'iq') {
@@ -416,6 +425,18 @@ export function NormalDistPage() {
               <strong className="font-semibold">Input error: </strong>
               {inputError}
             </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!hasInputs && !inputError && (
+          <div className="p-8 text-center text-slate-500 bg-white">
+            <p className="text-sm font-semibold text-slate-800 mb-1">
+              Ready when you are
+            </p>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+              Enter your observation value (x), cutoff intervals, or target percentile above to calculate probabilities and shade the bell curve rejection region.
+            </p>
           </div>
         )}
 

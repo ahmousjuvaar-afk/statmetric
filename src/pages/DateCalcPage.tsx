@@ -9,43 +9,50 @@ export function DateCalcPage() {
   const [tab, setTab] = useState<'age' | 'difference' | 'duration'>('age');
 
   // Age state
-  const [birthDate, setBirthDate] = useState('2000-01-15');
+  const [birthDate, setBirthDate] = useState('');
   const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Difference state
-  const [diffStart, setDiffStart] = useState('2025-01-01');
-  const [diffEnd, setDiffEnd] = useState('2025-06-30');
+  const [diffStart, setDiffStart] = useState('');
+  const [diffEnd, setDiffEnd] = useState('');
 
   // Duration state
-  const [timeStart, setTimeStart] = useState('09:15');
-  const [timeEnd, setTimeEnd] = useState('17:45');
+  const [timeStart, setTimeStart] = useState('');
+  const [timeEnd, setTimeEnd] = useState('');
+
+  const hasAgeInputs = birthDate.trim() !== '' && asOfDate.trim() !== '';
+  const hasDiffInputs = diffStart.trim() !== '' && diffEnd.trim() !== '';
+  const hasDurationInputs = timeStart.trim() !== '' && timeEnd.trim() !== '';
 
   const ageResult = useMemo(() => {
+    if (!hasAgeInputs) return { data: null, error: null };
     try {
       const res = calculateAge(birthDate, asOfDate);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid date calculation.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid date calculation.' };
     }
-  }, [birthDate, asOfDate]);
+  }, [birthDate, asOfDate, hasAgeInputs]);
 
   const diffResult = useMemo(() => {
+    if (!hasDiffInputs) return { data: null, error: null };
     try {
       const res = calculateDateDifference(diffStart, diffEnd);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid date interval.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid date interval.' };
     }
-  }, [diffStart, diffEnd]);
+  }, [diffStart, diffEnd, hasDiffInputs]);
 
   const durationResult = useMemo(() => {
+    if (!hasDurationInputs) return { data: null, error: null };
     try {
       const res = calculateTimeDuration(timeStart, timeEnd);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid time string.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid time string.' };
     }
-  }, [timeStart, timeEnd]);
+  }, [timeStart, timeEnd, hasDurationInputs]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -131,12 +138,35 @@ export function DateCalcPage() {
               </div>
             </div>
 
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <span className="text-slate-500">Chronological age and birthday countdown</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBirthDate('2000-01-15');
+                    setAsOfDate(new Date().toISOString().split('T')[0]);
+                  }}
+                  className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                >
+                  Load Example (DOB: Jan 15, 2000)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBirthDate('')}
+                  className="text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+
             {ageResult.error ? (
-              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3">
+              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3 mt-4">
                 {ageResult.error}
               </div>
             ) : ageResult.data ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100 mt-4">
                 <div className="p-3 bg-violet-50/60 border border-violet-100 rounded-lg text-center">
                   <span className="text-[11px] text-violet-700 font-medium block">Exact Age</span>
                   <div className="text-2xl font-black text-violet-900 mt-0.5">
@@ -166,7 +196,14 @@ export function DateCalcPage() {
                   <span className="text-[10px] text-amber-600">{ageResult.data.nextBirthdayDayOfWeek}</span>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="p-5 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-500 space-y-1 mt-4">
+                <p className="text-xs font-semibold text-slate-700">Chronological age will appear here</p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  Select your birthdate above to compute exact age, days lived, and countdown to your next birthday.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -196,12 +233,35 @@ export function DateCalcPage() {
               </div>
             </div>
 
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <span className="text-slate-500">Business days (Mon-Fri) and calendar span</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDiffStart('2025-01-01');
+                    setDiffEnd('2025-06-30');
+                  }}
+                  className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                >
+                  Load Example (Jan 1 to June 30)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setDiffStart(''); setDiffEnd(''); }}
+                  className="text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+
             {diffResult.error ? (
-              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3">
+              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3 mt-4">
                 {diffResult.error}
               </div>
             ) : diffResult.data ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100 mt-4">
                 <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-lg text-center">
                   <span className="text-[11px] text-blue-700 font-medium block">Total Days</span>
                   <div className="text-2xl font-black text-blue-900 mt-0.5">
@@ -231,7 +291,14 @@ export function DateCalcPage() {
                   <span className="text-[10px] text-slate-600">{diffResult.data.calendarYears} years</span>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="p-5 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-500 space-y-1 mt-4">
+                <p className="text-xs font-semibold text-slate-700">Date difference will appear here</p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  Select start and end dates above to calculate calendar elapsed time and working business days.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -261,12 +328,35 @@ export function DateCalcPage() {
               </div>
             </div>
 
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <span className="text-slate-500">Duration across daytime or midnight</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTimeStart('09:15');
+                    setTimeEnd('17:45');
+                  }}
+                  className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                >
+                  Load Example (09:15 to 17:45)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTimeStart(''); setTimeEnd(''); }}
+                  className="text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+
             {durationResult.error ? (
-              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3">
+              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3 mt-4">
                 {durationResult.error}
               </div>
             ) : durationResult.data ? (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-slate-100 mt-4">
                 <div className="p-3 bg-amber-50/60 border border-amber-100 rounded-lg text-center">
                   <span className="text-[11px] text-amber-700 font-medium block">Total Duration</span>
                   <div className="text-2xl font-black text-amber-900 mt-0.5">
@@ -291,7 +381,14 @@ export function DateCalcPage() {
                   <span className="text-[10px] text-slate-600">({(durationResult.data.totalMinutes * 60).toLocaleString()} secs)</span>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="p-5 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-500 space-y-1 mt-4">
+                <p className="text-xs font-semibold text-slate-700">Duration will appear here</p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  Select start and end clock times above to calculate total elapsed hours, minutes, and payroll decimal hours.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

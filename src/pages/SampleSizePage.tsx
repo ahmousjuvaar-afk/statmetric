@@ -9,42 +9,51 @@ export function SampleSizePage() {
   const [mode, setMode] = useState<'means' | 'survey'>('means');
 
   // Means state
-  const [effectSizeD, setEffectSizeD] = useState('0.5'); // medium effect
+  const [effectSizeD, setEffectSizeD] = useState('');
   const [alphaMeans, setAlphaMeans] = useState('0.05');
   const [powerMeans, setPowerMeans] = useState('0.80');
 
   // Survey state
   const [confidenceLevel, setConfidenceLevel] = useState('0.95');
-  const [marginOfError, setMarginOfError] = useState('0.05');
+  const [marginOfError, setMarginOfError] = useState('');
   const [popProportion, setPopProportion] = useState('0.50');
   const [populationSize, setPopulationSize] = useState('');
 
+  const hasMeansInputs = effectSizeD.trim() !== '';
+  const hasSurveyInputs = marginOfError.trim() !== '';
+
   const meansResult = useMemo(() => {
+    if (!hasMeansInputs) return { data: null, error: null };
     const d = parseFloat(effectSizeD);
     const a = parseFloat(alphaMeans);
     const p = parseFloat(powerMeans);
-    if (isNaN(d) || isNaN(a) || isNaN(p)) return { error: 'Please enter valid parameters.' };
+    if (isNaN(d) || isNaN(a) || isNaN(p) || d <= 0) {
+      return { data: null, error: 'Please enter a valid positive effect size (Cohen’s d > 0).' };
+    }
     try {
       const res = calculateSampleSizeTwoMeans(d, a, p);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid parameters.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid parameters.' };
     }
-  }, [effectSizeD, alphaMeans, powerMeans]);
+  }, [effectSizeD, alphaMeans, powerMeans, hasMeansInputs]);
 
   const surveyResult = useMemo(() => {
+    if (!hasSurveyInputs) return { data: null, error: null };
     const c = parseFloat(confidenceLevel);
     const e = parseFloat(marginOfError);
     const p = parseFloat(popProportion);
     const pop = populationSize.trim() ? parseInt(populationSize, 10) : undefined;
-    if (isNaN(c) || isNaN(e) || isNaN(p)) return { error: 'Please enter valid parameters.' };
+    if (isNaN(c) || isNaN(e) || isNaN(p) || e <= 0 || e >= 1) {
+      return { data: null, error: 'Please enter a valid margin of error between 0.01 and 0.50.' };
+    }
     try {
       const res = calculateSurveySampleSize(c, e, p, pop);
       return { data: res, error: null };
     } catch (err: unknown) {
-      return { error: err instanceof Error ? err.message : 'Invalid parameters.' };
+      return { data: null, error: err instanceof Error ? err.message : 'Invalid parameters.' };
     }
-  }, [confidenceLevel, marginOfError, popProportion, populationSize]);
+  }, [confidenceLevel, marginOfError, popProportion, populationSize, hasSurveyInputs]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -106,6 +115,7 @@ export function SampleSizePage() {
                 <input
                   type="number"
                   step="0.1"
+                  placeholder="e.g. 0.5"
                   value={effectSizeD}
                   onChange={(e) => setEffectSizeD(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
@@ -144,12 +154,49 @@ export function SampleSizePage() {
               </div>
             </div>
 
+            {/* Benchmark toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div className="flex flex-wrap items-center gap-2 text-slate-600">
+                <span>Cohen’s Benchmarks:</span>
+                <button
+                  type="button"
+                  onClick={() => setEffectSizeD('0.2')}
+                  className="text-blue-600 hover:underline"
+                >
+                  Small (0.2)
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => setEffectSizeD('0.5')}
+                  className="text-blue-600 hover:underline"
+                >
+                  Medium (0.5)
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => setEffectSizeD('0.8')}
+                  className="text-blue-600 hover:underline"
+                >
+                  Large (0.8)
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEffectSizeD('')}
+                className="text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+
             {meansResult.error ? (
-              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded p-2">
+              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded p-2 mt-4">
                 {meansResult.error}
               </div>
             ) : meansResult.data ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 mt-4">
                 <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-center">
                   <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider block">
                     Required Sample Size Per Group
@@ -173,7 +220,14 @@ export function SampleSizePage() {
                   </span>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="p-5 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-500 space-y-1 mt-4">
+                <p className="text-xs font-semibold text-slate-700">Sample size requirement will appear here</p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  Enter target effect size (Cohen’s d) above or choose a benchmark (small, medium, or large).
+                </p>
+              </div>
+            )}
           </div>
 
           <StepsExplanation
@@ -219,6 +273,7 @@ export function SampleSizePage() {
                 <input
                   type="number"
                   step="0.01"
+                  placeholder="e.g. 0.05"
                   value={marginOfError}
                   onChange={(e) => setMarginOfError(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
@@ -253,12 +308,49 @@ export function SampleSizePage() {
               </div>
             </div>
 
+            {/* Presets toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div className="flex flex-wrap items-center gap-2 text-slate-600">
+                <span>Standard Margins:</span>
+                <button
+                  type="button"
+                  onClick={() => setMarginOfError('0.05')}
+                  className="text-blue-600 hover:underline"
+                >
+                  ±5% (0.05 Standard)
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => setMarginOfError('0.03')}
+                  className="text-blue-600 hover:underline"
+                >
+                  ±3% (0.03 Strict)
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => setMarginOfError('0.01')}
+                  className="text-blue-600 hover:underline"
+                >
+                  ±1% (0.01 High Precision)
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setMarginOfError(''); setPopulationSize(''); }}
+                className="text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+
             {surveyResult.error ? (
-              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded p-2">
+              <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded p-2 mt-4">
                 {surveyResult.error}
               </div>
             ) : surveyResult.data ? (
-              <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-center mt-3">
+              <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-center mt-4">
                 <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider block">
                   Required Completed Survey Responses
                 </span>
@@ -269,7 +361,14 @@ export function SampleSizePage() {
                   For {(surveyResult.data.confidenceLevel * 100).toFixed(0)}% confidence at ±{(surveyResult.data.marginOfError * 100).toFixed(1)}% margin of error
                 </span>
               </div>
-            ) : null}
+            ) : (
+              <div className="p-5 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-500 space-y-1 mt-4">
+                <p className="text-xs font-semibold text-slate-700">Survey sample size will appear here</p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  Enter your desired margin of error above (e.g. 0.05 for ±5%) or choose a standard benchmark.
+                </p>
+              </div>
+            )}
           </div>
 
           <StepsExplanation

@@ -6,7 +6,7 @@ import { MathExpressionEvaluator } from '../lib/math/calculatorEngine';
 import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 export function GraphingCalcPage() {
-  const [equationStr, setEquationStr] = useState('x^2 - 4');
+  const [equationStr, setEquationStr] = useState('');
   const [xMin, setXMin] = useState(-5);
   const [xMax, setXMax] = useState(5);
   const [yMin, setYMin] = useState(-5);
@@ -25,6 +25,9 @@ export function GraphingCalcPage() {
 
   // Plot generation
   const { points, polylinePoints, error } = useMemo(() => {
+    if (!equationStr.trim()) {
+      return { points: [], polylinePoints: '', error: null };
+    }
     const evaluator = new MathExpressionEvaluator('rad');
     const pts: { x: number; y: number }[] = [];
     const steps = 250;
@@ -195,7 +198,7 @@ export function GraphingCalcPage() {
               </text>
 
               {/* Plot polyline */}
-              {polylinePoints && (
+              {polylinePoints ? (
                 <polyline
                   fill="none"
                   stroke="#38bdf8"
@@ -204,6 +207,10 @@ export function GraphingCalcPage() {
                   strokeLinejoin="round"
                   points={polylinePoints}
                 />
+              ) : (
+                <text x="300" y="200" textAnchor="middle" fill="#64748b" fontSize="13" fontFamily="sans-serif">
+                  Enter function f(x) or click a preset below to plot
+                </text>
               )}
 
               {/* Hover indicator dot */}
@@ -230,9 +237,20 @@ export function GraphingCalcPage() {
         {/* Function Controls & Presets */}
         <div className="lg:col-span-4 space-y-4">
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-            <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-3">
-              Function Definition
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
+                Function Definition
+              </h2>
+              {equationStr && (
+                <button
+                  type="button"
+                  onClick={() => setEquationStr('')}
+                  className="text-xs text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
 
             <div className="mb-4">
               <label className="block text-xs font-medium text-slate-700 mb-1">

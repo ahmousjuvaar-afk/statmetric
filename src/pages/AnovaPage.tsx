@@ -9,16 +9,26 @@ import { Plus, Trash2, RotateCcw } from 'lucide-react';
 
 export function AnovaPage() {
   const [groups, setGroups] = useState([
-    { name: 'Placebo', input: '12, 14, 15, 11, 13' },
-    { name: 'Low Dose', input: '16, 18, 19, 15, 17' },
-    { name: 'High Dose', input: '22, 25, 24, 21, 23' },
+    { name: 'Group 1', input: '' },
+    { name: 'Group 2', input: '' },
+    { name: 'Group 3', input: '' },
   ]);
   const [alpha, setAlpha] = useState(0.05);
+
+  const hasInputs = groups.some((g) => g.input.trim() !== '');
+
+  const loadExample = () => {
+    setGroups([
+      { name: 'Placebo', input: '12, 14, 15, 11, 13' },
+      { name: 'Low Dose', input: '16, 18, 19, 15, 17' },
+      { name: 'High Dose', input: '22, 25, 24, 21, 23' },
+    ]);
+  };
 
   const handleAddGroup = () => {
     setGroups((prev) => [
       ...prev,
-      { name: `Group ${String.fromCharCode(65 + prev.length)}`, input: '10, 12, 14' },
+      { name: `Group ${prev.length + 1}`, input: '' },
     ]);
   };
 
@@ -36,6 +46,7 @@ export function AnovaPage() {
   };
 
   const anovaResult = useMemo(() => {
+    if (!hasInputs) return { data: null, error: null };
     try {
       const parsed = groups.map((g) => ({
         name: g.name,
@@ -47,9 +58,9 @@ export function AnovaPage() {
       const res = calculateOneWayAnova(parsed, alpha);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid group data format.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid group data format.' };
     }
-  }, [groups, alpha]);
+  }, [hasInputs, groups, alpha]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -141,7 +152,21 @@ export function AnovaPage() {
 
         {/* Results & ANOVA Table */}
         <div className="lg:col-span-7 space-y-4">
-          {anovaResult.error ? (
+          {!hasInputs ? (
+            <div className="p-8 bg-white border border-slate-200 rounded-xl text-center space-y-2">
+              <p className="text-sm font-semibold text-slate-800">Ready when you are</p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+                Enter numerical observations for each comparison group on the left, or load a clinical trial example to calculate the ANOVA F-test and source table.
+              </p>
+              <button
+                onClick={loadExample}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                <span>Load Worked Example (Clinical Trial)</span>
+              </button>
+            </div>
+          ) : anovaResult.error ? (
             <div className="p-6 bg-white border border-slate-200 rounded-xl text-center">
               <span className="text-xs text-rose-600 font-medium">{anovaResult.error}</span>
             </div>

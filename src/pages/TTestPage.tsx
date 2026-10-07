@@ -12,15 +12,23 @@ export function TTestPage() {
   const [tail, setTail] = useState<TTestTail>('two_tailed');
   const [alpha, setAlpha] = useState<number>(0.05);
 
-  const [m1Str, setM1Str] = useState<string>('82.4');
-  const [sd1Str, setSd1Str] = useState<string>('6.8');
-  const [n1Str, setN1Str] = useState<string>('25');
+  const [m1Str, setM1Str] = useState<string>('');
+  const [sd1Str, setSd1Str] = useState<string>('');
+  const [n1Str, setN1Str] = useState<string>('');
 
-  const [m2Str, setM2Str] = useState<string>('76.1');
-  const [sd2Str, setSd2Str] = useState<string>('8.2');
-  const [n2Str, setN2Str] = useState<string>('25');
+  const [m2Str, setM2Str] = useState<string>('');
+  const [sd2Str, setSd2Str] = useState<string>('');
+  const [n2Str, setN2Str] = useState<string>('');
 
   const [copiedValue, setCopiedValue] = useState(false);
+
+  const hasInputs =
+    m1Str.trim() !== '' &&
+    sd1Str.trim() !== '' &&
+    n1Str.trim() !== '' &&
+    m2Str.trim() !== '' &&
+    sd2Str.trim() !== '' &&
+    n2Str.trim() !== '';
 
   const m1 = parseFloat(m1Str);
   const sd1 = parseFloat(sd1Str);
@@ -30,14 +38,16 @@ export function TTestPage() {
   const n2 = parseFloat(n2Str);
 
   let inputError: string | null = null;
-  if (isNaN(m1) || isNaN(m2)) inputError = 'Enter valid mean values for both groups.';
-  else if (isNaN(sd1) || isNaN(sd2) || sd1 <= 0 || sd2 <= 0)
-    inputError = 'Standard deviations must be strictly greater than 0.';
-  else if (isNaN(n1) || isNaN(n2) || n1 < 2 || n2 < 2)
-    inputError = 'Sample sizes must each be at least 2 observations (n ≥ 2).';
+  if (hasInputs) {
+    if (isNaN(m1) || isNaN(m2)) inputError = 'Enter valid mean values for both groups.';
+    else if (isNaN(sd1) || isNaN(sd2) || sd1 <= 0 || sd2 <= 0)
+      inputError = 'Standard deviations must be strictly greater than 0.';
+    else if (isNaN(n1) || isNaN(n2) || n1 < 2 || n2 < 2)
+      inputError = 'Sample sizes must each be at least 2 observations (n ≥ 2).';
+  }
 
   const result = useMemo(() => {
-    if (inputError) return null;
+    if (!hasInputs || inputError) return null;
     try {
       return calculateTTest({
         type: testType,
@@ -54,7 +64,7 @@ export function TTestPage() {
       if (err instanceof Error) inputError = err.message;
       return null;
     }
-  }, [testType, tail, alpha, m1, sd1, n1, m2, sd2, n2, inputError]);
+  }, [hasInputs, testType, tail, alpha, m1, sd1, n1, m2, sd2, n2, inputError]);
 
   const loadExample = (ex: 'clinical' | 'education' | 'equal') => {
     if (ex === 'clinical') {
@@ -374,6 +384,18 @@ export function TTestPage() {
           <div className="p-4 bg-amber-50 border-b border-amber-200 flex items-start gap-2 text-xs text-amber-900">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <span>{inputError}</span>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!hasInputs && !inputError && (
+          <div className="p-8 text-center text-slate-500 bg-white">
+            <p className="text-sm font-semibold text-slate-800 mb-1">
+              Ready when you are
+            </p>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+              Enter sample means, standard deviations, and sizes for Group 1 and Group 2 above, or load a classroom example to calculate the t-statistic and p-value.
+            </p>
           </div>
         )}
 

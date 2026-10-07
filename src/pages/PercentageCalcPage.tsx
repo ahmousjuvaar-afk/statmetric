@@ -7,23 +7,53 @@ import { calculatePercentage, PercentageMode } from '../lib/math/percentages';
 
 export function PercentageCalcPage() {
   const [mode, setMode] = useState<PercentageMode>('percent_of');
-  const [val1, setVal1] = useState('15');
-  const [val2, setVal2] = useState('200');
+  const [val1, setVal1] = useState('');
+  const [val2, setVal2] = useState('');
   const [direction, setDirection] = useState<'increase' | 'decrease'>('increase');
 
+  const hasInputs = val1.trim() !== '' && val2.trim() !== '';
+
+  const loadModeExample = (targetMode: PercentageMode) => {
+    setMode(targetMode);
+    if (targetMode === 'percent_of') {
+      setVal1('15');
+      setVal2('200');
+    } else if (targetMode === 'is_what_percent') {
+      setVal1('45');
+      setVal2('180');
+    } else if (targetMode === 'percent_change') {
+      setVal1('50');
+      setVal2('75');
+    } else if (targetMode === 'percent_difference') {
+      setVal1('80');
+      setVal2('100');
+    } else if (targetMode === 'reverse_percent') {
+      setVal1('120');
+      setVal2('20');
+      setDirection('increase');
+    }
+  };
+
+  const handleModeSwitch = (newMode: PercentageMode) => {
+    setMode(newMode);
+    setVal1('');
+    setVal2('');
+  };
+
   const result = useMemo(() => {
+    if (!hasInputs) return { data: null, error: null };
     const v1 = parseFloat(val1);
     const v2 = parseFloat(val2);
     if (isNaN(v1) || isNaN(v2)) {
-      return { error: 'Please enter valid numerical values.' };
+      return { data: null, error: 'Please enter valid numerical values.' };
     }
     try {
       const res = calculatePercentage(mode, v1, v2, direction);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid percentage calculation.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid percentage calculation.' };
     }
-  }, [mode, val1, val2, direction]);
+  }, [mode, val1, val2, direction, hasInputs]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -56,7 +86,8 @@ export function PercentageCalcPage() {
       {/* Mode Selector Tabs */}
       <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-lg mb-6 max-w-2xl">
         <button
-          onClick={() => { setMode('percent_of'); setVal1('15'); setVal2('200'); }}
+          type="button"
+          onClick={() => handleModeSwitch('percent_of')}
           className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
             mode === 'percent_of' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
           }`}
@@ -64,7 +95,8 @@ export function PercentageCalcPage() {
           What is X% of Y?
         </button>
         <button
-          onClick={() => { setMode('is_what_percent'); setVal1('45'); setVal2('180'); }}
+          type="button"
+          onClick={() => handleModeSwitch('is_what_percent')}
           className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
             mode === 'is_what_percent' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
           }`}
@@ -72,7 +104,8 @@ export function PercentageCalcPage() {
           X is what % of Y?
         </button>
         <button
-          onClick={() => { setMode('percent_change'); setVal1('50'); setVal2('75'); }}
+          type="button"
+          onClick={() => handleModeSwitch('percent_change')}
           className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
             mode === 'percent_change' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
           }`}
@@ -80,7 +113,8 @@ export function PercentageCalcPage() {
           Percentage Change
         </button>
         <button
-          onClick={() => { setMode('percent_difference'); setVal1('80'); setVal2('100'); }}
+          type="button"
+          onClick={() => handleModeSwitch('percent_difference')}
           className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
             mode === 'percent_difference' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
           }`}
@@ -88,7 +122,8 @@ export function PercentageCalcPage() {
           Percent Difference
         </button>
         <button
-          onClick={() => { setMode('reverse_percent'); setVal1('120'); setVal2('20'); }}
+          type="button"
+          onClick={() => handleModeSwitch('reverse_percent')}
           className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
             mode === 'reverse_percent' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
           }`}
@@ -107,6 +142,7 @@ export function PercentageCalcPage() {
                 <div className="relative">
                   <input
                     type="number"
+                    placeholder="e.g. 15"
                     value={val1}
                     onChange={(e) => setVal1(e.target.value)}
                     className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -118,6 +154,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Of Total Number (Y)</label>
                 <input
                   type="number"
+                  placeholder="e.g. 200"
                   value={val2}
                   onChange={(e) => setVal2(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -132,6 +169,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Part Value (X)</label>
                 <input
                   type="number"
+                  placeholder="e.g. 45"
                   value={val1}
                   onChange={(e) => setVal1(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -141,6 +179,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Total Whole (Y)</label>
                 <input
                   type="number"
+                  placeholder="e.g. 180"
                   value={val2}
                   onChange={(e) => setVal2(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -155,6 +194,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Initial Value (V1)</label>
                 <input
                   type="number"
+                  placeholder="e.g. 50"
                   value={val1}
                   onChange={(e) => setVal1(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -164,6 +204,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Final Value (V2)</label>
                 <input
                   type="number"
+                  placeholder="e.g. 75"
                   value={val2}
                   onChange={(e) => setVal2(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -178,6 +219,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">First Value (V1)</label>
                 <input
                   type="number"
+                  placeholder="e.g. 80"
                   value={val1}
                   onChange={(e) => setVal1(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -187,6 +229,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Second Value (V2)</label>
                 <input
                   type="number"
+                  placeholder="e.g. 100"
                   value={val2}
                   onChange={(e) => setVal2(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -201,6 +244,7 @@ export function PercentageCalcPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Final Value</label>
                 <input
                   type="number"
+                  placeholder="e.g. 120"
                   value={val1}
                   onChange={(e) => setVal1(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -221,6 +265,7 @@ export function PercentageCalcPage() {
                 <div className="relative">
                   <input
                     type="number"
+                    placeholder="e.g. 20"
                     value={val2}
                     onChange={(e) => setVal2(e.target.value)}
                     className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"
@@ -232,7 +277,7 @@ export function PercentageCalcPage() {
           )}
 
           {/* Result Box */}
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg min-h-[76px] flex flex-col justify-center">
             <span className="text-[11px] font-semibold text-slate-600 block mb-0.5 uppercase tracking-wider">
               Calculated Result
             </span>
@@ -247,7 +292,30 @@ export function PercentageCalcPage() {
                   {result.data.explanation}
                 </p>
               </div>
-            ) : null}
+            ) : (
+              <span className="text-xs text-slate-400">Enter values to compute</span>
+            )}
+          </div>
+        </div>
+
+        {/* Action Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 mt-4 text-xs">
+          <span className="text-slate-500">Quick Worked Example</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => loadModeExample(mode)}
+              className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+            >
+              Load Example for this mode
+            </button>
+            <button
+              type="button"
+              onClick={() => { setVal1(''); setVal2(''); }}
+              className="text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Clear
+            </button>
           </div>
         </div>
       </div>

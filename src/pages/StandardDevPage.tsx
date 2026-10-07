@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export function StandardDevPage() {
-  const [rawInput, setRawInput] = useState<string>('10, 12, 15, 18, 21, 24, 28');
+  const [rawInput, setRawInput] = useState<string>('');
   const [calcType, setCalcType] = useState<StandardDevType>('sample');
   const [showTable, setShowTable] = useState(false);
   const [copiedValue, setCopiedValue] = useState(false);
@@ -32,27 +32,28 @@ export function StandardDevPage() {
   }, [rawInput]);
 
   // Validation
-  let validationError: string | null = parseResult.error || null;
-  if (!validationError && parseResult.values.length === 0) {
-    validationError = 'Enter at least 2 numbers separated by commas, spaces, or line breaks.';
-  } else if (!validationError && calcType === 'sample' && parseResult.values.length < 2) {
-    validationError = 'Enter at least 2 observations for sample standard deviation (n ≥ 2) to compute degrees of freedom (n - 1).';
-  } else if (!validationError && calcType === 'population' && parseResult.values.length < 1) {
-    validationError = 'Enter at least 1 observation for population standard deviation.';
+  let validationError: string | null = null;
+  if (rawInput.trim() !== '') {
+    if (parseResult.error) {
+      validationError = parseResult.error;
+    } else if (parseResult.values.length === 0) {
+      validationError = 'Enter at least 2 numbers separated by commas, spaces, or line breaks.';
+    } else if (calcType === 'sample' && parseResult.values.length < 2) {
+      validationError = 'Enter at least 2 observations for sample standard deviation (n ≥ 2) to compute degrees of freedom (n - 1).';
+    } else if (calcType === 'population' && parseResult.values.length < 1) {
+      validationError = 'Enter at least 1 observation for population standard deviation.';
+    }
   }
 
   // Calculate
   const result: StandardDevResult | null = useMemo(() => {
-    if (validationError || parseResult.values.length === 0) return null;
+    if (!rawInput.trim() || validationError || parseResult.values.length === 0) return null;
     try {
       return calculateStandardDeviation(parseResult.values, calcType);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        validationError = err.message;
-      }
       return null;
     }
-  }, [parseResult.values, calcType, validationError]);
+  }, [rawInput, parseResult.values, calcType, validationError]);
 
   const loadExample = (preset: 'grades' | 'lab' | 'small' | 'symmetric') => {
     if (preset === 'grades') {
@@ -301,6 +302,18 @@ export function StandardDevPage() {
               <strong className="font-semibold">Input Error: </strong>
               {validationError}
             </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!rawInput.trim() && (
+          <div className="p-8 text-center text-slate-500 bg-white">
+            <p className="text-sm font-semibold text-slate-800 mb-1">
+              Ready when you are
+            </p>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Enter your dataset observations above to compute sample standard deviation (s), variance (s²), Bessel correction, and observation deviations.
+            </p>
           </div>
         )}
 

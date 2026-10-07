@@ -18,8 +18,8 @@ export function SeoHead({
   faqItems,
 }: SeoProps) {
   useEffect(() => {
-    // 1. Update Document Title
-    const fullTitle = `${title} | StatMetric`;
+    // 1. Update Document Title cleanly
+    const fullTitle = title.includes('StatMetric') ? title : `${title} | StatMetric`;
     document.title = fullTitle;
 
     // 2. Update Meta Description
@@ -32,42 +32,73 @@ export function SeoHead({
     metaDesc.setAttribute('content', description);
 
     // 3. Update OpenGraph Tags
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', fullTitle);
+    const setMetaTag = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
 
-    let ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute('content', description);
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://statmetric.org';
+    const canonicalUrl = `${currentOrigin}${path}`;
+    const ogImageUrl = `${currentOrigin}/og-image.svg`;
 
-    let ogUrl = document.querySelector('meta[property="og:url"]');
-    if (!ogUrl) {
-      ogUrl = document.createElement('meta');
-      ogUrl.setAttribute('property', 'og:url');
-      document.head.appendChild(ogUrl);
-    }
-    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-    ogUrl.setAttribute('content', `${currentOrigin}${path}`);
+    setMetaTag('property', 'og:title', fullTitle);
+    setMetaTag('property', 'og:description', description);
+    setMetaTag('property', 'og:url', canonicalUrl);
+    setMetaTag('property', 'og:site_name', 'StatMetric');
+    setMetaTag('property', 'og:type', schemaType === 'WebSite' ? 'website' : 'article');
+    setMetaTag('property', 'og:image', ogImageUrl);
 
-    // 4. Update Canonical Link
+    // 4. Update Twitter Cards
+    setMetaTag('name', 'twitter:card', 'summary_large_image');
+    setMetaTag('name', 'twitter:title', fullTitle);
+    setMetaTag('name', 'twitter:description', description);
+    setMetaTag('name', 'twitter:image', ogImageUrl);
+
+    // 5. Update Canonical Link
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    canonical.setAttribute('href', `${currentOrigin}${path}`);
+    canonical.setAttribute('href', canonicalUrl);
 
-    // 5. Inject Structured Data JSON-LD
+    // 6. Inject Structured Data JSON-LD
     const schemas: Record<string, unknown>[] = [];
 
-    // Base Application / Website Schema
-    if (schemaType === 'WebApplication') {
+    // Organization Schema
+    const orgSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'StatMetric',
+      url: currentOrigin,
+      logo: `${currentOrigin}/favicon.svg`,
+      description: 'Open quantitative computing & research toolkit.',
+    };
+
+    if (schemaType === 'WebSite') {
+      schemas.push({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'StatMetric',
+        url: currentOrigin,
+        description,
+        publisher: orgSchema,
+      });
+      schemas.push(orgSchema);
+    } else if (schemaType === 'WebApplication') {
       schemas.push({
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
-        name: title,
+        name: title.replace(/ \| StatMetric.*$/, ''),
         applicationCategory: 'EducationalApplication',
         operatingSystem: 'All',
-        url: `${currentOrigin}${path}`,
+        url: canonicalUrl,
         description,
         isAccessibleForFree: true,
         offers: {
@@ -75,6 +106,7 @@ export function SeoHead({
           price: '0',
           priceCurrency: 'USD',
         },
+        publisher: orgSchema,
       });
     }
 

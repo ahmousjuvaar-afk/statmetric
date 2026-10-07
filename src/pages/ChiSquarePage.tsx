@@ -10,19 +10,38 @@ import { RotateCcw } from 'lucide-react';
 export function ChiSquarePage() {
   const [rows, setRows] = useState(2);
   const [cols, setCols] = useState(2);
-  const [grid, setGrid] = useState<number[][]>([
-    [25, 15],
-    [10, 30],
+  const [grid, setGrid] = useState<(string | number)[][]>([
+    ['', ''],
+    ['', ''],
   ]);
   const [rowLabels, setRowLabels] = useState(['Group A', 'Group B']);
   const [colLabels, setColLabels] = useState(['Success', 'Failure']);
   const [alpha, setAlpha] = useState(0.05);
 
+  const numericGrid = useMemo(() => {
+    return grid.map((row) =>
+      row.map((val) => {
+        if (typeof val === 'number') return val;
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? 0 : parsed;
+      })
+    );
+  }, [grid]);
+
+  const hasEnteredData = useMemo(() => {
+    return grid.some((row) =>
+      row.some((val) => typeof val === 'number' || (typeof val === 'string' && val.trim() !== ''))
+    );
+  }, [grid]);
+
+  const totalN = useMemo(() => {
+    return numericGrid.reduce((sum, row) => sum + row.reduce((rSum, c) => rSum + c, 0), 0);
+  }, [numericGrid]);
+
   const handleCellChange = (r: number, c: number, val: string) => {
-    const num = parseFloat(val);
     setGrid((prev) => {
       const copy = prev.map((row) => [...row]);
-      copy[r][c] = isNaN(num) ? 0 : num;
+      copy[r][c] = val;
       return copy;
     });
   };
@@ -31,11 +50,11 @@ export function ChiSquarePage() {
     setRows(newRows);
     setCols(newCols);
     setGrid((prev) => {
-      const next: number[][] = [];
+      const next: (string | number)[][] = [];
       for (let r = 0; r < newRows; r++) {
         next[r] = [];
         for (let c = 0; c < newCols; c++) {
-          next[r][c] = prev[r] && prev[r][c] !== undefined ? prev[r][c] : 10;
+          next[r][c] = prev[r] && prev[r][c] !== undefined ? prev[r][c] : '';
         }
       }
       return next;
@@ -44,14 +63,32 @@ export function ChiSquarePage() {
     setColLabels(Array.from({ length: newCols }, (_, i) => `Col ${i + 1}`));
   };
 
+  const loadExample = () => {
+    setRows(2);
+    setCols(2);
+    setRowLabels(['Treatment', 'Control']);
+    setColLabels(['Improved', 'No Change']);
+    setGrid([
+      [25, 15],
+      [10, 30],
+    ]);
+  };
+
+  const clearGrid = () => {
+    setGrid(
+      Array.from({ length: rows }, () => Array.from({ length: cols }, () => ''))
+    );
+  };
+
   const result = useMemo(() => {
+    if (!hasEnteredData || totalN <= 0) return { data: null, error: null };
     try {
-      const res = calculateChiSquareIndependence(grid, alpha);
+      const res = calculateChiSquareIndependence(numericGrid, alpha);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid contingency table.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid contingency table.' };
     }
-  }, [grid, alpha]);
+  }, [numericGrid, alpha, hasEnteredData, totalN]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -167,20 +204,24 @@ export function ChiSquarePage() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-            <span>Cells display: Observed (Input) / Expected (Exp)</span>
-            <button
-              onClick={() => {
-                setGrid([[25, 15], [10, 30]]);
-                setRows(2);
-                setCols(2);
-                setRowLabels(['Group A', 'Group B']);
-                setColLabels(['Success', 'Failure']);
-              }}
-              className="text-blue-600 hover:underline flex items-center gap-1"
-            >
-              <RotateCcw className="w-3 h-3" /> Reset 2x2
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>Observed (Input) / Expected (Exp)</span>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={loadExample}
+                className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+              >
+                Load Example (2×2 Trial)
+              </button>
+              <button
+                type="button"
+                onClick={clearGrid}
+                className="text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" /> Clear table
+              </button>
+            </div>
           </div>
         </div>
 
@@ -228,7 +269,14 @@ export function ChiSquarePage() {
               {/* APA Report Box */}
               <ReportBox apaString={result.data.apaReport} contextNote="Formatted according to APA 7th Edition style." />
             </>
-          ) : null}
+          ) : (
+            <div className="p-6 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-500 space-y-2">
+              <p className="text-xs font-semibold text-slate-700">Contingency test results will appear here</p>
+              <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+                Enter your observed frequencies in the table on the left, or click &ldquo;Load Example&rdquo; to explore an educational worked example.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

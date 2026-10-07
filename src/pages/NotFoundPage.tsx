@@ -1,18 +1,19 @@
 import { Link } from '../lib/router';
 import { SeoHead } from '../components/SeoHead';
-import { Search, ArrowRight, BarChart3 } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
+import { StatMetricLogo } from '../components/StatMetricLogo';
 
 export function NotFoundPage({ onOpenSearch }: { onOpenSearch: () => void }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-16 sm:py-24 text-center">
       <SeoHead
-        title="Page Not Found — Find a Statistical Calculator"
+        title="Page Not Found — Quantitative Directory"
         description="The requested page could not be found. Find the statistical calculator you need using our directory or quick links."
         path="/404"
       />
 
-      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-800 mx-auto mb-4">
-        <BarChart3 className="w-6 h-6 text-slate-700" />
+      <div className="flex justify-center mb-5">
+        <StatMetricLogo variant="symbol" size="lg" />
       </div>
 
       <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">

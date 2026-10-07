@@ -15,30 +15,29 @@ export function GradeCalculatorPage() {
   const [tab, setTab] = useState<'final_exam' | 'weighted'>('final_exam');
 
   // Final Exam Mode State
-  const [currentGradeStr, setCurrentGradeStr] = useState<string>('78');
-  const [targetGradeStr, setTargetGradeStr] = useState<string>('85');
-  const [examWeightStr, setExamWeightStr] = useState<string>('30');
+  const [currentGradeStr, setCurrentGradeStr] = useState<string>('');
+  const [targetGradeStr, setTargetGradeStr] = useState<string>('');
+  const [examWeightStr, setExamWeightStr] = useState<string>('');
 
   // Weighted Course Mode State
-  const [categories, setCategories] = useState<GradeCategory[]>([
-    { id: '1', name: 'Homework & Assignments', weight: 20, score: 92 },
-    { id: '2', name: 'Midterm Exam', weight: 25, score: 78 },
-    { id: '3', name: 'Term Project', weight: 20, score: 88 },
-    { id: '4', name: 'Quizzes', weight: 10, score: 85 },
-    { id: '5', name: 'Final Exam', weight: 25, score: 80 },
-  ]);
+  const [categories, setCategories] = useState<GradeCategory[]>([]);
+
+  const hasFinalExamInputs =
+    currentGradeStr.trim() !== '' && targetGradeStr.trim() !== '' && examWeightStr.trim() !== '';
 
   const currentGrade = parseFloat(currentGradeStr) || 0;
   const targetGrade = parseFloat(targetGradeStr) || 0;
   const examWeight = parseFloat(examWeightStr) || 0;
 
   let finalExamError: string | null = null;
-  if (examWeight <= 0 || examWeight > 100) {
-    finalExamError = 'Final exam weight must be between 1% and 100%.';
+  if (hasFinalExamInputs) {
+    if (examWeight <= 0 || examWeight > 100) {
+      finalExamError = 'Final exam weight must be between 1% and 100%.';
+    }
   }
 
   const finalExamResult = useMemo(() => {
-    if (finalExamError) return null;
+    if (!hasFinalExamInputs || finalExamError) return null;
     try {
       return calculateFinalExamNeeded({
         currentGrade,
@@ -49,21 +48,36 @@ export function GradeCalculatorPage() {
       if (err instanceof Error) finalExamError = err.message;
       return null;
     }
-  }, [currentGrade, targetGrade, examWeight, finalExamError]);
+  }, [hasFinalExamInputs, currentGrade, targetGrade, examWeight, finalExamError]);
 
   const weightedResult = useMemo(() => {
     return calculateWeightedGrade(categories);
   }, [categories]);
 
+  const loadExampleSyllabus = () => {
+    setCategories([
+      { id: '1', name: 'Homework & Problem Sets', weight: 20, score: 92 },
+      { id: '2', name: 'Midterm Exam', weight: 25, score: 78 },
+      { id: '3', name: 'Term Project', weight: 20, score: 88 },
+      { id: '4', name: 'Quizzes', weight: 10, score: 85 },
+      { id: '5', name: 'Final Exam', weight: 25, score: 80 },
+    ]);
+  };
+
+  const loadExampleFinal = () => {
+    setCurrentGradeStr('78');
+    setTargetGradeStr('85');
+    setExamWeightStr('30');
+  };
+
   const addCategory = () => {
     setCategories([
       ...categories,
-      { id: String(Date.now()), name: 'New Component', weight: 10, score: 85 },
+      { id: String(Date.now()), name: `Component ${categories.length + 1}`, weight: 20, score: 85 },
     ]);
   };
 
   const removeCategory = (id: string) => {
-    if (categories.length <= 1) return;
     setCategories(categories.filter((c) => c.id !== id));
   };
 
@@ -257,6 +271,23 @@ export function GradeCalculatorPage() {
             </div>
           )}
 
+          {/* Empty State */}
+          {!hasFinalExamInputs && !finalExamError && (
+            <div className="p-8 text-center text-slate-500 bg-white">
+              <p className="text-sm font-semibold text-slate-800 mb-1">Ready when you are</p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+                Enter your current coursework grade, desired target course grade, and final exam weight above to calculate your required exam score.
+              </p>
+              <button
+                type="button"
+                onClick={loadExampleFinal}
+                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded-md transition-colors"
+              >
+                Load Worked Example (Current: 78%, Target: 85%, Exam: 30%)
+              </button>
+            </div>
+          )}
+
           {/* Results */}
           {finalExamResult && (
             <div className="p-5 sm:p-7 space-y-6">
@@ -348,62 +379,101 @@ export function GradeCalculatorPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {categories.map((cat) => (
-                    <tr key={cat.id}>
-                      <td className="p-2.5">
-                        <input
-                          type="text"
-                          value={cat.name}
-                          onChange={(e) => updateCategory(cat.id, 'name', e.target.value)}
-                          className="w-full px-2 py-1 text-xs border border-slate-200 rounded-md"
-                        />
-                      </td>
-                      <td className="p-2.5">
-                        <input
-                          type="number"
-                          value={cat.weight}
-                          onChange={(e) =>
-                            updateCategory(cat.id, 'weight', parseFloat(e.target.value) || 0)
-                          }
-                          className="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded-md"
-                        />
-                      </td>
-                      <td className="p-2.5">
-                        <input
-                          type="number"
-                          value={cat.score}
-                          onChange={(e) =>
-                            updateCategory(cat.id, 'score', parseFloat(e.target.value) || 0)
-                          }
-                          className="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded-md"
-                        />
-                      </td>
-                      <td className="p-2.5 text-right font-mono font-semibold text-slate-800">
-                        {((cat.score * cat.weight) / 100).toFixed(2)}%
-                      </td>
-                      <td className="p-2.5 text-center">
-                        <button
-                          onClick={() => removeCategory(cat.id)}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded"
-                          aria-label="Remove category"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                  {categories.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-slate-500">
+                        <p className="text-sm font-semibold text-slate-800 mb-1">No syllabus components added</p>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+                          Add your course grading categories (homework, midterm, projects) or load a sample syllabus.
+                        </p>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={addCategory}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add Component</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={loadExampleSyllabus}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+                          >
+                            Load Sample Syllabus
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    categories.map((cat) => (
+                      <tr key={cat.id}>
+                        <td className="p-2.5">
+                          <input
+                            type="text"
+                            value={cat.name}
+                            onChange={(e) => updateCategory(cat.id, 'name', e.target.value)}
+                            className="w-full px-2 py-1 text-xs border border-slate-200 rounded-md"
+                          />
+                        </td>
+                        <td className="p-2.5">
+                          <input
+                            type="number"
+                            value={cat.weight}
+                            onChange={(e) =>
+                              updateCategory(cat.id, 'weight', parseFloat(e.target.value) || 0)
+                            }
+                            className="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded-md"
+                          />
+                        </td>
+                        <td className="p-2.5">
+                          <input
+                            type="number"
+                            value={cat.score}
+                            onChange={(e) =>
+                              updateCategory(cat.id, 'score', parseFloat(e.target.value) || 0)
+                            }
+                            className="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded-md"
+                          />
+                        </td>
+                        <td className="p-2.5 text-right font-mono font-semibold text-slate-800">
+                          {((cat.score * cat.weight) / 100).toFixed(2)}%
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <button
+                            onClick={() => removeCategory(cat.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                            aria-label="Remove category"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <button
-                onClick={addCategory}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-semibold hover:bg-slate-800"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Component</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={addCategory}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-semibold hover:bg-slate-800"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Component</span>
+                </button>
+                {categories.length > 0 && (
+                  <button
+                    onClick={() => setCategories([])}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:text-slate-800 transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Clear all</span>
+                  </button>
+                )}
+              </div>
               <div className="font-medium text-slate-600">
                 Total Weights Sum: <strong className={weightedResult.totalWeight === 100 ? 'text-emerald-700' : 'text-amber-700'}>{weightedResult.totalWeight}%</strong>
                 {weightedResult.totalWeight !== 100 && ' (weights should sum to 100%)'}
@@ -412,20 +482,29 @@ export function GradeCalculatorPage() {
           </div>
 
           <div className="p-5 sm:p-7 space-y-6">
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                  Overall Weighted Grade
-                </span>
-                <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono">
-                  {weightedResult.finalGrade.toFixed(2)}%
+            {categories.length === 0 ? (
+              <div className="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <p className="text-sm font-semibold text-slate-700 mb-1">Your weighted grade will appear here</p>
+                <p className="text-xs text-slate-500">
+                  Add syllabus components above to compute your cumulative weighted score.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
+                    Overall Weighted Grade
+                  </span>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono">
+                    {weightedResult.finalGrade.toFixed(2)}%
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-slate-500 uppercase font-semibold">Estimated Letter Grade</span>
+                  <div className="text-2xl font-bold text-sky-700">{weightedResult.letterGrade}</div>
                 </div>
               </div>
-              <div className="text-right">
-                <span className="text-xs text-slate-500 uppercase font-semibold">Estimated Letter Grade</span>
-                <div className="text-2xl font-bold text-sky-700">{weightedResult.letterGrade}</div>
-              </div>
-            </div>
+            )}
 
             <NextStepCard options={nextSteps} />
           </div>

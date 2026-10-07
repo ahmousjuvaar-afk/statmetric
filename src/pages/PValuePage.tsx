@@ -25,13 +25,18 @@ import {
 
 export function PValuePage() {
   const [distribution, setDistribution] = useState<DistributionType>('t');
-  const [statisticStr, setStatisticStr] = useState<string>('2.14');
-  const [dfStr, setDfStr] = useState<string>('28');
-  const [df2Str, setDf2Str] = useState<string>('30');
+  const [statisticStr, setStatisticStr] = useState<string>('');
+  const [dfStr, setDfStr] = useState<string>('');
+  const [df2Str, setDf2Str] = useState<string>('');
   const [tail, setTail] = useState<TailType>('two_tailed');
   const [alphaMode, setAlphaMode] = useState<'0.10' | '0.05' | '0.01' | 'custom'>('0.05');
   const [customAlphaStr, setCustomAlphaStr] = useState<string>('0.05');
   const [copiedValue, setCopiedValue] = useState(false);
+
+  const hasInputs =
+    statisticStr.trim() !== '' &&
+    (distribution === 'z' || dfStr.trim() !== '') &&
+    (distribution !== 'f' || df2Str.trim() !== '');
 
   // Parse numerical values
   const statistic = parseFloat(statisticStr);
@@ -41,21 +46,23 @@ export function PValuePage() {
 
   // Validation
   let inputError: string | null = null;
-  if (isNaN(statistic)) {
-    inputError = 'Enter a valid test statistic number.';
-  } else if ((distribution === 'chisquare' || distribution === 'f') && statistic < 0) {
-    inputError = `${distribution === 'chisquare' ? 'Chi-Square (χ²)' : 'F'} test statistic must be non-negative (≥ 0).`;
-  } else if ((distribution === 't' || distribution === 'chisquare' || distribution === 'f') && (isNaN(df) || df <= 0)) {
-    inputError = 'Degrees of freedom (df) must be a positive number greater than 0.';
-  } else if (distribution === 'f' && (isNaN(df2) || df2 <= 0)) {
-    inputError = 'Denominator degrees of freedom (df₂) must be a positive number greater than 0.';
-  } else if (alpha <= 0 || alpha >= 1 || isNaN(alpha)) {
-    inputError = 'Significance level (α) must be between 0 and 1 (typically 0.05).';
+  if (hasInputs) {
+    if (isNaN(statistic)) {
+      inputError = 'Enter a valid test statistic number.';
+    } else if ((distribution === 'chisquare' || distribution === 'f') && statistic < 0) {
+      inputError = `${distribution === 'chisquare' ? 'Chi-Square (χ²)' : 'F'} test statistic must be non-negative (≥ 0).`;
+    } else if ((distribution === 't' || distribution === 'chisquare' || distribution === 'f') && (isNaN(df) || df <= 0)) {
+      inputError = 'Degrees of freedom (df) must be a positive number greater than 0.';
+    } else if (distribution === 'f' && (isNaN(df2) || df2 <= 0)) {
+      inputError = 'Denominator degrees of freedom (df₂) must be a positive number greater than 0.';
+    } else if (alpha <= 0 || alpha >= 1 || isNaN(alpha)) {
+      inputError = 'Significance level (α) must be between 0 and 1 (typically 0.05).';
+    }
   }
 
   // Calculate result if valid
   const result: PValueResult | null = useMemo(() => {
-    if (inputError) return null;
+    if (!hasInputs || inputError) return null;
     try {
       return calculatePValue({
         distribution,
@@ -68,7 +75,7 @@ export function PValuePage() {
     } catch {
       return null;
     }
-  }, [distribution, statistic, df, df2, tail, alpha, inputError]);
+  }, [hasInputs, distribution, statistic, df, df2, tail, alpha, inputError]);
 
   const loadExample = (type: 'z' | 't' | 'chisquare' | 'f') => {
     setDistribution(type);
@@ -442,6 +449,18 @@ export function PValuePage() {
               <strong className="font-semibold">Input error: </strong>
               {inputError}
             </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!hasInputs && !inputError && (
+          <div className="p-8 text-center text-slate-500 bg-white">
+            <p className="text-sm font-semibold text-slate-800 mb-1">
+              Ready when you are
+            </p>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+              Enter your test statistic (Z, t, χ², or F) and degrees of freedom above, or select a quick example to calculate the exact p-value and rejection region.
+            </p>
           </div>
         )}
 

@@ -8,27 +8,30 @@ import { parseDatasetInput } from '../lib/statistics/standardDev';
 import { AlertTriangle, RotateCcw, Printer, Copy, Check } from 'lucide-react';
 
 export function DescriptiveStatsPage() {
-  const [rawInput, setRawInput] = useState<string>('12, 15, 18, 19, 21, 21, 24, 28, 32, 35');
+  const [rawInput, setRawInput] = useState<string>('');
   const [copiedSummary, setCopiedSummary] = useState(false);
 
   const parsed = useMemo(() => {
     return parseDatasetInput(rawInput);
   }, [rawInput]);
 
-  let inputError: string | null = parsed.error || null;
-  if (!inputError && parsed.values.length < 2) {
-    inputError = 'Enter at least 2 numbers to compute descriptive statistics.';
+  let inputError: string | null = null;
+  if (rawInput.trim() !== '') {
+    if (parsed.error) {
+      inputError = parsed.error;
+    } else if (parsed.values.length < 2) {
+      inputError = 'Enter at least 2 numbers to compute descriptive statistics.';
+    }
   }
 
   const result = useMemo(() => {
-    if (inputError || parsed.values.length < 2) return null;
+    if (!rawInput.trim() || inputError || parsed.values.length < 2) return null;
     try {
       return calculateDescriptiveStats(parsed.values);
     } catch (err: unknown) {
-      if (err instanceof Error) inputError = err.message;
       return null;
     }
-  }, [parsed.values, inputError]);
+  }, [rawInput, parsed.values, inputError]);
 
   const loadExample = (ex: 'grades' | 'skewed' | 'bimodal') => {
     if (ex === 'grades') {
@@ -156,6 +159,18 @@ export function DescriptiveStatsPage() {
           <div className="p-4 bg-amber-50 border-b border-amber-200 flex items-start gap-2 text-xs text-amber-900">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <span>{inputError}</span>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!rawInput.trim() && (
+          <div className="p-8 text-center text-slate-500 bg-white">
+            <p className="text-sm font-semibold text-slate-800 mb-1">
+              Ready when you are
+            </p>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Enter your dataset observations above to compute sample and population metrics, central tendency, quartiles, and skewness.
+            </p>
           </div>
         )}
 

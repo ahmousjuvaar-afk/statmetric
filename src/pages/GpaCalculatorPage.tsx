@@ -12,20 +12,12 @@ import {
 } from '../lib/education/gpa';
 import { Plus, Trash2, RotateCcw, Printer, Copy, Check, GraduationCap, Award } from 'lucide-react';
 
-const INITIAL_COURSES: CourseEntry[] = [
-  { id: '1', name: 'Calculus I', credits: 4, grade: 'A' },
-  { id: '2', name: 'Introduction to Statistics', credits: 3, grade: 'A-' },
-  { id: '3', name: 'Academic Writing & Research', credits: 3, grade: 'B+' },
-  { id: '4', name: 'Principles of Economics', credits: 3, grade: 'B' },
-  { id: '5', name: 'Data Structures Lab', credits: 2, grade: 'A' },
-];
-
 export function GpaCalculatorPage() {
   const [scale, setScale] = useState<GpaScaleType>('4.0');
-  const [courses, setCourses] = useState<CourseEntry[]>(INITIAL_COURSES);
+  const [courses, setCourses] = useState<CourseEntry[]>([]);
   const [enableCgpa, setEnableCgpa] = useState<boolean>(false);
-  const [priorGpaStr, setPriorGpaStr] = useState<string>('3.50');
-  const [priorCreditsStr, setPriorCreditsStr] = useState<string>('30');
+  const [priorGpaStr, setPriorGpaStr] = useState<string>('');
+  const [priorCreditsStr, setPriorCreditsStr] = useState<string>('');
   const [copiedGpa, setCopiedGpa] = useState(false);
 
   const priorGpa = enableCgpa ? parseFloat(priorGpaStr) || 0 : undefined;
@@ -296,61 +288,79 @@ export function GpaCalculatorPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {courses.map((course, idx) => (
-                  <tr key={course.id} className="hover:bg-slate-50/50">
-                    <td className="p-2.5">
-                      <input
-                        type="text"
-                        value={course.name}
-                        onChange={(e) => updateCourse(course.id, 'name', e.target.value)}
-                        placeholder={`Course ${idx + 1}`}
-                        className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-900"
-                      />
-                    </td>
-                    <td className="p-2.5">
-                      <input
-                        type="number"
-                        min="0.5"
-                        step="0.5"
-                        value={course.credits}
-                        onChange={(e) =>
-                          updateCourse(course.id, 'credits', parseFloat(e.target.value) || 0)
-                        }
-                        className="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-900"
-                      />
-                    </td>
-                    <td className="p-2.5">
-                      <select
-                        value={course.grade}
-                        onChange={(e) => updateCourse(course.id, 'grade', e.target.value)}
-                        className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-900 font-medium"
-                      >
-                        {GPA_SCALES[scale].grades.map((g) => (
-                          <option key={g.grade} value={g.grade}>
-                            {g.grade} ({g.points.toFixed(1)})
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="p-2.5 text-right font-mono text-slate-800 font-semibold">
-                      {(
-                        course.credits *
-                        (GPA_SCALES[scale].grades.find((g) => g.grade === course.grade)?.points || 0)
-                      ).toFixed(1)}
-                    </td>
-                    <td className="p-2.5 text-center">
+                {courses.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-slate-500">
+                      <p className="text-sm font-semibold text-slate-800 mb-1">No courses added yet</p>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+                        Enter your semester course titles, credit weights, and letter grades below or load a classroom preset above.
+                      </p>
                       <button
-                        onClick={() => removeCourse(course.id)}
-                        disabled={courses.length <= 1}
-                        className="p-1 text-slate-400 hover:text-rose-600 disabled:opacity-30 disabled:hover:text-slate-400 rounded transition-colors"
-                        title="Delete course"
-                        aria-label="Delete course"
+                        type="button"
+                        onClick={addCourse}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors shadow-xs"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Your First Course</span>
                       </button>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  courses.map((course, idx) => (
+                    <tr key={course.id} className="hover:bg-slate-50/50">
+                      <td className="p-2.5">
+                        <input
+                          type="text"
+                          value={course.name}
+                          onChange={(e) => updateCourse(course.id, 'name', e.target.value)}
+                          placeholder={`Course ${idx + 1}`}
+                          className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-900"
+                        />
+                      </td>
+                      <td className="p-2.5">
+                        <input
+                          type="number"
+                          min="0.5"
+                          step="0.5"
+                          value={course.credits}
+                          onChange={(e) =>
+                            updateCourse(course.id, 'credits', parseFloat(e.target.value) || 0)
+                          }
+                          className="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-900"
+                        />
+                      </td>
+                      <td className="p-2.5">
+                        <select
+                          value={course.grade}
+                          onChange={(e) => updateCourse(course.id, 'grade', e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-900 font-medium"
+                        >
+                          {GPA_SCALES[scale].grades.map((g) => (
+                            <option key={g.grade} value={g.grade}>
+                              {g.grade} ({g.points.toFixed(1)})
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="p-2.5 text-right font-mono text-slate-800 font-semibold">
+                        {(
+                          course.credits *
+                          (GPA_SCALES[scale].grades.find((g) => g.grade === course.grade)?.points || 0)
+                        ).toFixed(1)}
+                      </td>
+                      <td className="p-2.5 text-center">
+                        <button
+                          onClick={() => removeCourse(course.id)}
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                          title="Delete course"
+                          aria-label="Delete course"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -367,11 +377,15 @@ export function GpaCalculatorPage() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setCourses(INITIAL_COURSES)}
+                onClick={() => {
+                  setCourses([]);
+                  setPriorGpaStr('');
+                  setPriorCreditsStr('');
+                }}
                 className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset courses</span>
+                <span>Clear courses</span>
               </button>
               <button
                 onClick={() => window.print()}
@@ -386,55 +400,66 @@ export function GpaCalculatorPage() {
 
         {/* Calculation Result */}
         <div className="p-5 sm:p-7 space-y-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                Semester Grade Point Average (GPA)
-              </span>
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">
-                  {result.gpa.toFixed(2)}
-                </span>
-                <span className="text-sm font-mono text-slate-500">
-                  / {GPA_SCALES[scale].maxGpa.toFixed(1)} max
-                </span>
-                <button
-                  onClick={handleCopyGpa}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-md transition-colors no-print"
-                  title="Copy GPA"
-                  aria-label="Copy GPA"
-                >
-                  {copiedGpa ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-              <div className="mt-1 text-xs text-slate-500 font-mono">
-                Total Quality Points: {result.totalGradePoints.toFixed(1)} · Total Graded Credits: {result.totalCredits}
-              </div>
+          {result.totalCredits === 0 ? (
+            <div className="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              <p className="text-sm font-semibold text-slate-700 mb-1">Your GPA will appear here</p>
+              <p className="text-xs text-slate-500">
+                Add your semester courses above to calculate credit-weighted GPA, quality points, and academic standing.
+              </p>
             </div>
-
-            {/* Standing or CGPA Column */}
-            <div className="sm:text-right border-t sm:border-t-0 sm:border-l border-slate-200 pt-3 sm:pt-0 sm:pl-6 space-y-1">
-              {result.cumulativeCgpa !== undefined && (
+          ) : (
+            <>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <div className="text-xs text-slate-500 uppercase font-semibold">
-                    Cumulative CGPA
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
+                    Semester Grade Point Average (GPA)
+                  </span>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">
+                      {result.gpa.toFixed(2)}
+                    </span>
+                    <span className="text-sm font-mono text-slate-500">
+                      / {GPA_SCALES[scale].maxGpa.toFixed(1)} max
+                    </span>
+                    <button
+                      onClick={handleCopyGpa}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-md transition-colors no-print"
+                      title="Copy GPA"
+                      aria-label="Copy GPA"
+                    >
+                      {copiedGpa ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    </button>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-sky-700">
-                    {result.cumulativeCgpa.toFixed(2)}
-                  </div>
-                  <div className="text-[11px] text-slate-500">
-                    Total Career Credits: {result.combinedTotalCredits}
+                  <div className="mt-1 text-xs text-slate-500 font-mono">
+                    Total Quality Points: {result.totalGradePoints.toFixed(1)} · Total Graded Credits: {result.totalCredits}
                   </div>
                 </div>
-              )}
-              <div className="flex items-center sm:justify-end gap-1.5 pt-1">
-                <Award className="w-4 h-4 text-amber-600" />
-                <span className="text-xs font-bold text-slate-800">
-                  {result.academicStanding}
-                </span>
+
+                {/* Standing or CGPA Column */}
+                <div className="sm:text-right border-t sm:border-t-0 sm:border-l border-slate-200 pt-3 sm:pt-0 sm:pl-6 space-y-1">
+                  {result.cumulativeCgpa !== undefined && (
+                    <div>
+                      <div className="text-xs text-slate-500 uppercase font-semibold">
+                        Cumulative CGPA
+                      </div>
+                      <div className="text-2xl font-bold font-mono text-sky-700">
+                        {result.cumulativeCgpa.toFixed(2)}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Total Career Credits: {result.combinedTotalCredits}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center sm:justify-end gap-1.5 pt-1">
+                    <Award className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs font-semibold text-slate-800">
+                      {result.academicStanding}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
 
           {/* Progressive Disclosure Steps */}
           <StepsExplanation

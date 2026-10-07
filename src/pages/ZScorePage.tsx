@@ -9,10 +9,15 @@ import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 export function ZScorePage() {
   const [mode, setMode] = useState<'forward' | 'reverse'>('forward');
-  const [xStr, setXStr] = useState<string>('115');
-  const [zStr, setZStr] = useState<string>('1.0');
-  const [meanStr, setMeanStr] = useState<string>('100');
-  const [sdStr, setSdStr] = useState<string>('15');
+  const [xStr, setXStr] = useState<string>('');
+  const [zStr, setZStr] = useState<string>('');
+  const [meanStr, setMeanStr] = useState<string>('');
+  const [sdStr, setSdStr] = useState<string>('');
+
+  const hasInputs =
+    mode === 'forward'
+      ? xStr.trim() !== '' && meanStr.trim() !== '' && sdStr.trim() !== ''
+      : zStr.trim() !== '' && meanStr.trim() !== '' && sdStr.trim() !== '';
 
   const x = parseFloat(xStr) || 0;
   const z = parseFloat(zStr) || 0;
@@ -20,12 +25,14 @@ export function ZScorePage() {
   const sd = parseFloat(sdStr) || 0;
 
   let inputError: string | null = null;
-  if (sd <= 0) {
-    inputError = 'Standard deviation (σ) must be strictly greater than 0.';
+  if (hasInputs) {
+    if (sd <= 0) {
+      inputError = 'Standard deviation (σ) must be strictly greater than 0.';
+    }
   }
 
   const result = useMemo(() => {
-    if (inputError) return null;
+    if (!hasInputs || inputError) return null;
     try {
       return calculateZScore({
         mode,
@@ -38,7 +45,7 @@ export function ZScorePage() {
       if (err instanceof Error) inputError = err.message;
       return null;
     }
-  }, [mode, x, z, mean, sd, inputError]);
+  }, [hasInputs, mode, x, z, mean, sd, inputError]);
 
   const loadExample = (type: 'iq' | 'exam' | 'extreme') => {
     if (type === 'iq') {
@@ -240,6 +247,18 @@ export function ZScorePage() {
           <div className="p-4 bg-amber-50 border-b border-amber-200 flex items-start gap-2 text-xs text-amber-900">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <span>{inputError}</span>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!hasInputs && !inputError && (
+          <div className="p-8 text-center text-slate-500 bg-white">
+            <p className="text-sm font-semibold text-slate-800 mb-1">
+              Ready when you are
+            </p>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+              Enter your observation score, distribution mean (μ), and standard deviation (σ) above, or load a classroom example to calculate the standardized z-score and percentile.
+            </p>
           </div>
         )}
 

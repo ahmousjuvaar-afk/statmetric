@@ -9,7 +9,7 @@ export function UnitConverterPage() {
   const [domain, setDomain] = useState<UnitDomain>('length');
   const [fromUnit, setFromUnit] = useState('m');
   const [toUnit, setToUnit] = useState('ft');
-  const [inputValue, setInputValue] = useState('1');
+  const [inputValue, setInputValue] = useState('');
   const [copied, setCopied] = useState(false);
 
   const domainConfig = UNIT_DOMAINS[domain];
@@ -29,15 +29,16 @@ export function UnitConverterPage() {
   };
 
   const conversion = useMemo(() => {
+    if (!inputValue.trim()) return { data: null, error: null };
     const val = parseFloat(inputValue);
     if (isNaN(val)) {
-      return { error: 'Please enter a valid numeric value.' };
+      return { data: null, error: 'Please enter a valid numeric value.' };
     }
     try {
       const res = convertUnits(domain, fromUnit, toUnit, val);
       return { data: res, error: null };
     } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : 'Invalid conversion.' };
+      return { data: null, error: e instanceof Error ? e.message : 'Invalid conversion.' };
     }
   }, [domain, fromUnit, toUnit, inputValue]);
 
@@ -113,6 +114,7 @@ export function UnitConverterPage() {
             <label className="block text-xs font-semibold text-slate-700">From</label>
             <input
               type="number"
+              placeholder="e.g. 1"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               className="w-full px-3 py-2.5 text-lg font-bold bg-slate-50 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
@@ -159,8 +161,10 @@ export function UnitConverterPage() {
             <div className="w-full px-3 py-2.5 text-lg font-bold bg-slate-50 border border-slate-200 rounded-md font-mono text-blue-600 truncate min-h-[46px] flex items-center">
               {conversion.error ? (
                 <span className="text-xs text-rose-600 font-normal">{conversion.error}</span>
+              ) : conversion.data ? (
+                conversion.data.formatted
               ) : (
-                conversion.data?.formatted
+                <span className="text-sm font-normal text-slate-400">Result</span>
               )}
             </div>
             <select
@@ -177,11 +181,28 @@ export function UnitConverterPage() {
           </div>
         </div>
 
-        {conversion.data && (
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-mono">
-            <span>Formula: {conversion.data.formula}</span>
+        {/* Action Toolbar */}
+        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+          <div className="font-mono">
+            {conversion.data ? `Formula: ${conversion.data.formula}` : 'Exact SI factor conversion'}
           </div>
-        )}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setInputValue('1')}
+              className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+            >
+              Load 1 Unit
+            </button>
+            <button
+              type="button"
+              onClick={() => setInputValue('')}
+              className="text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Comprehensive Domain Comparison Table */}

@@ -12,13 +12,18 @@ export function ConfidenceIntervalPage() {
   const [confidenceLevel, setConfidenceLevel] = useState<number>(0.95);
 
   // Mean inputs
-  const [meanStr, setMeanStr] = useState<string>('50');
-  const [sdStr, setSdStr] = useState<string>('10');
-  const [nStr, setNStr] = useState<string>('36');
+  const [meanStr, setMeanStr] = useState<string>('');
+  const [sdStr, setSdStr] = useState<string>('');
+  const [nStr, setNStr] = useState<string>('');
 
   // Proportion inputs
-  const [kStr, setKStr] = useState<string>('60');
-  const [sampleSizeStr, setSampleSizeStr] = useState<string>('100');
+  const [kStr, setKStr] = useState<string>('');
+  const [sampleSizeStr, setSampleSizeStr] = useState<string>('');
+
+  const hasInputs =
+    ciType === 'mean_t' || ciType === 'mean_z'
+      ? meanStr.trim() !== '' && sdStr.trim() !== '' && nStr.trim() !== ''
+      : kStr.trim() !== '' && sampleSizeStr.trim() !== '';
 
   const mean = parseFloat(meanStr) || 0;
   const sd = parseFloat(sdStr) || 0;
@@ -27,16 +32,18 @@ export function ConfidenceIntervalPage() {
   const sampleSize = parseFloat(sampleSizeStr) || 0;
 
   let inputError: string | null = null;
-  if (ciType === 'mean_t' || ciType === 'mean_z') {
-    if (sd <= 0) inputError = 'Standard deviation must be strictly greater than 0.';
-    else if (n < 2) inputError = 'Sample size n must be at least 2.';
-  } else {
-    if (sampleSize <= 0) inputError = 'Sample size must be greater than 0.';
-    else if (k < 0 || k > sampleSize) inputError = 'Success count must be between 0 and total sample size.';
+  if (hasInputs) {
+    if (ciType === 'mean_t' || ciType === 'mean_z') {
+      if (sd <= 0) inputError = 'Standard deviation must be strictly greater than 0.';
+      else if (n < 2) inputError = 'Sample size n must be at least 2.';
+    } else {
+      if (sampleSize <= 0) inputError = 'Sample size must be greater than 0.';
+      else if (k < 0 || k > sampleSize) inputError = 'Success count must be between 0 and total sample size.';
+    }
   }
 
   const result = useMemo(() => {
-    if (inputError) return null;
+    if (!hasInputs || inputError) return null;
     try {
       return calculateConfidenceInterval({
         type: ciType,
@@ -51,7 +58,7 @@ export function ConfidenceIntervalPage() {
       if (err instanceof Error) inputError = err.message;
       return null;
     }
-  }, [ciType, confidenceLevel, mean, sd, n, k, sampleSize, inputError]);
+  }, [hasInputs, ciType, confidenceLevel, mean, sd, n, k, sampleSize, inputError]);
 
   const nextSteps: NextStepOption[] = [
     {
@@ -264,6 +271,18 @@ export function ConfidenceIntervalPage() {
           <div className="p-4 bg-amber-50 border-b border-amber-200 flex items-start gap-2 text-xs text-amber-900">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <span>{inputError}</span>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!hasInputs && !inputError && (
+          <div className="p-8 text-center text-slate-500 bg-white">
+            <p className="text-sm font-semibold text-slate-800 mb-1">
+              Ready when you are
+            </p>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
+              Enter your sample summary statistics above or select a preset to construct the confidence interval and error margins.
+            </p>
           </div>
         )}
 
